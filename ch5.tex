@@ -1,0 +1,459 @@
+\chapter{Parallelizing DPOR algorithms}
+\label{paradpor}
+
+In this chapter we are going to present the parallel version of source-DPOR and optimal-DPOR algorithms. Let us first
+discuss some existing work in parallelizing persistent-set based DPOR algorithms.
+
+\section{Existing Work}
+
+Parallelizing DPOR can be used to diminish the issue of the combinatorial state space explosion. At a first glance this 
+ may seem straightforward. Since the state space of a program contains no cycles, we should simply distribute the state 
+space of a program into multiple workers-schedulers. However this approach leads to two main issues \cite{Yang:2007:DDP:1770532.1770541}.
+
+Firstly, DPOR algorithms detect races and the update the exploration frontier works in a non local manner. For instance,
+in the case of Algorithm \ref{Source}, while calls to $explore(E, Sleep)$ may guarantee that for all maximal execution 
+sequences of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$, backtrack points
+may also be inserted in the prefixes of E. This means that even with the use of sleep sets, different schedulers may still fully explore
+redundant or even identical interleavings.
+
+Secondly, the size of different chunks of the state space cannot be known preemptively. This means that some form of load balancing
+is essential to achieve linear speedup.
+
+Yang et al. \cite{Yang:2007:DDP:1770532.1770541} suggest using a centralized load balancer to unload work from a scheduler, whose
+frontier exceeds a certain limit, to idle schedulers. In order to combat redundant explorations, they suggest a heuristic
+that simply modifies the lazy addition of backtrack entries to the exploration frontier \cite{FlanaganDPOR} to become more eager.
+Adding backtrack entries more eagerly, i.e. earlier in the exploration phase, reduces the chances of two different workers
+exploring identical interleavings. However, this is simply a heuristic, which means that
+depending on the tested program, a significant amount of redundant computations
+may still occur.
+
+A more appropriate way to solve these issues is to use a centralized $controller$, which keeps track of the current 
+$execution$ $tree$ (a tree whose branches correspond to the current execution sequences $E$ of the schedulers) in order
+to assure that no redundant explorations occur \cite{Simsa2012ScalableDP}. This method also suggests the use of
+$time$ $slicing$ to achieve load-balancing. 
+
+\section{Parallel source-DPOR}
+
+Here we are going to present how to efficiently parallelize the source-DPOR algorithm, by modifying the parallel algorithm 
+presented at \cite{Simsa2012ScalableDP}.
+
+\subsection{Algorithm Presentation}
+
+Normally DPOR algorithms perform a depth-first search of the state-space to check for erroneous interleavings. Instead, we
+are going to use multiple depth-first searches (by partitioning the frontier of our search) to explore our state-space.
+Also we are going to use a centralized $Controller$ to oversee this exploration so we avoid any redundant computations.
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}
+    \caption{Controller Loop}
+    \label{controllerloop}
+    \Fn{controller\_loop($N$, $Budget$, $Schedulers$)}{
+        $E_0 \leftarrow$ an arbitrary initial execution sequence\;
+        $Frontier \leftarrow[E_0]$\;
+        $T \leftarrow$ an execution tree rooted at $E_0$\;
+        \While{ $size(Frontier) > 0$} {
+            $partition(Frontier, N)$\;
+            \While{ exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
+                $E_c \leftarrow$ a copy of $E$\;
+                $spawn(S, explore\_loop(E_c, Budget))$\;
+            }
+            $wait\_scheduler\_response(Frontier, T)$\;
+        }
+           
+    }
+
+\end{algorithm}
+
+The logic of the Controller is described by Algorithm \ref{controllerloop}. The Controller will maintain a $Frontier$, 
+which is a set of execution sequences $E$, and an execution tree $T$, which contains
+as branches the execution sequences of the Frontier. For as long as there exists an execution sequence at the frontier 
+($size(Frontier)>0$), the controller will partition its Frontier to at most $N$ execution sequences. Then, the controller
+will try to assign all of its unassigned execution sequences to any idle scheduler, by spawning $explore\_loop(E_c, Budget)$
+functions. Finally, it will block until it receives a response from a scheduler.
+
+
+\begin{algorithm}
+    \caption{Frontier Partitioning}
+    \label{partition}
+    \Fn{partition($Frontier$, $N$)}{
+        \For{all E $\in$ Frontier}{
+            \If{$size(Frontier) = N$}{
+                return\;
+            }
+            \While{ $total\_backtrack\_entries(E) > 1$ \textbf{ and } $size(Frontier) < N$}{
+                $E' \leftarrow $ \textnormal{the smallest prefix of $E$
+                that has a backtrack entry} \;
+                $p \leftarrow \textnormal{ a process} \in backtrack(E') $\;
+                $E_c' \leftarrow \textnormal{ a copy of } E'$\;
+                \textnormal{remove $p$ from $ backtrack(E')$}\;
+                \textnormal{add $p$ to $ sleep(E')$}\;
+                \textnormal{add $ backtrack(E') $ to $ sleep(E_c')$}\;
+                \textnormal{add $E_c'$ to $ Frontier$}\;
+            }
+        }
+    }
+\end{algorithm}
+
+During the $partitioning$ phase (Algorithm \ref{partition}), we inspect the current Frontier to determine whether
+we should create additional execution sequences. Every execution sequence that contains more than one backtrack entry,
+is split into multiple sequences until either the frontier contains $N$ sequences or all sequences
+have exactly one backtrack entry. It is vital to modify sleep sets appropriately, because if we were to simply
+remove backtrack entries, our algorithm would have an increased amount of sleep-set blocked interleavings.
+
+\begin{algorithm}
+    \caption{Scheduler Exploration Loop}
+    \label{explore_loop}
+    \Fn{explore\_loop($E_0$, $Budget$)}{
+        $StartTime \leftarrow get\_time()$\;
+        $ E \leftarrow E_0$\;
+        \Repeat{$CurrentTime - StartTime > Budget \textbf{ or  }size(E'') \leq size(E_0)$}{
+            $ E' \leftarrow explore(E)$\;
+            $ plan\_more\_interleavings(E') $\;
+            $ E'' \leftarrow get\_next\_execution\_sequence(E')$\;
+            $CurrentTime \leftarrow get\_time()$\;
+        }
+        \textnormal{\textbf{send}  $E''$ to controller} \;
+    }
+\end{algorithm}
+
+Algorithm \ref{explore_loop} details how the schedulers explore their assigned state space.
+A call to $explore\_loop(E_0, Budget)$ guarantees that for all maximal execution 
+sequences of form $E_0.w$, the algorithm has explored some execution sequence $E_0'$ which is in $[E_0.w]_\simeq$ 
+We use $explore(E)$ and 
+$ plan\_more\_interleavings(E') $ as a high level way to describe the main phases (state exploration and 
+race detection) of the sequential source-DPOR. The $ plan\_more\_interleavings(E') $ function
+could add backtrack points in prefixes of $E_0$. This could lead to different schedulers exploring
+identical interleavings. We avoid this by having 
+the function $ get\_next\_execution\_sequence(E')$ return 
+the largest prefix of $E'$ that has a non empty backtrack set. This leads to a depth-first exploration of the assigned
+state space before considering interleavings outside of the state space. The exploration
+continues until we encounter a prefix of $E_0$ ( $size(E'') \leq size(E_0)$ ). This is necessary to 
+assert that the specific scheduler will not explore interleavings outside of its state space. When the exploration
+terminates, the backtrack points added to the prefixes of $E_0$ will be reported back to the controller.
+
+\begin{algorithm}
+    \caption{Handling Scheduler Response}
+    \label{response}
+    \Fn{wait\_scheduler\_response(Frontier, T)}{
+        \textnormal{\textbf{receive} $E$ from a scheduler}\;
+        $E' \leftarrow update\_execution\_tree(E, T)$\;
+        \textnormal{add $E'$ to $Frontier$}\;
+    }
+\end{algorithm}
+
+
+When the controller receives a response (an execution sequence $E$) from a scheduler (Algorithm \ref{response}), it will 
+try and report any new
+backtrack entries in $E$ to the execution tree $T$. Those backtrack entries that are not found
+in the execution tree, are added to it and they are not removed from the execution sequence. This means that 
+this execution sequence is the first to $claim$ $ownership$ over those entries and the state-space
+that exists under them. Any backtrack entries that already exist in $T$, are removed from the 
+execution sequence $E$ (and added to the sleep sets at the appropriate prefixes of $E$),
+because some other execution sequence has already claimed their ownership. This updated execution sequence is then 
+added to the frontier of the controller. Through this we make sure that two schedulers cannot explore identical
+interleavings.
+
+When updating the execution tree, we also use the initial execution sequence that was assigned to a scheduler
+(the one denoted as $E_0$ at Algorithm \ref{explore_loop}) to figure out which parts of the execution tree have
+already been explored. Those parts are deleted from the execution tree. 
+This is mandatory in order to keep the size of the execution tree proportionate to the size of our current frontier.
+
+
+\subsection{Load Balancing}
+
+In order to achieve decent speedups and scalability it is necessary to have load-balancing \cite{Simsa2012ScalableDP}.
+This done through time-slicing \cite{wiki:timeslice} the exploration of execution sequences. This is the reason
+behind the use of $Budget$ in Algorithm \ref{explore_loop}. By having schedulers return after a certain time-slice,
+we can make sure that even if their assigned state-space was larger compared to that of other schedulers, they will
+eventually exit and have their execution sequence and subsequently, their state space, partitioned. How effective
+is this method is determined by two variables, the upper limit $N$ to the number of execution sequences in our
+frontier and the $Budget$ of a scheduler.
+
+Higher upper limit $N$ means that a larger work pool is available to the workers and therefore, the utilization of the schedulers
+increases.
+However a larger $N$ also means increased memory requirements, since more execution sequences are active at each time.
+Setting this limit to double the amount of schedulers, produces the decent results for most test cases\cite{Simsa2012ScalableDP}.
+
+Smaller Budget values lead to more balanced workload, since the work is distributed more frequently. However,
+extremely low values may lead to an increased communication overhead between the Controller and the schedulers.
+This can also cause the controller to become a significant bottleneck. The best way to deal with this,
+is to pick an initial value $B$ of around 1-10 seconds. When a scheduler starts a new exploration,
+the value of its budget will be dynamically assigned by the Controller depending on the amount of
+idle schedulers. For instance, the first execution should have a budget of $B \over n$ were $n$ is the total amount of
+schedulers, which are all idle. When half the schedulers are idle this value should be $B \over 2$, etc. This makes it possible to have
+reduced communication (higher budget) during periods with many busy schedulers and a better balancing
+(lower budget) during periods with many idle schedulers.
+
+\subsection{A Simple Example}
+
+
+\begin{figure*}
+    \begin{minipage}{0.3\textwidth}
+      \begin{lstlisting}[frame=none, numbers=none]
+        p:
+        write(x)
+      \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}{0.3\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            q:
+            read(x)
+            write(x)
+        \end{lstlisting}
+      \end{minipage}
+      \begin{minipage}{0.3\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            r:
+            write(x)
+        \end{lstlisting}
+      \end{minipage}
+      \caption{Simple readers-writes example}
+      \label{sourceexample}
+  \end{figure*}
+
+Let us consider the example in Figure \ref{sourceexample}. In this case we have 3 processes that write and read a shared variable x.
+Figure \ref{Interleavings explored by the sequential source-DPOR} represents the traces explored during the sequential source-DPOR.
+We use a bold rectangle to represent a new event and a faint rectangle to denote a replayed event. The red edges represent
+the races that are detected and planned. The source set at a state is represented inside the brackets.
+
+\tracelonglong{source1.png}{Interleavings explored by the sequential source-DPOR}
+
+\tracelong{source2f.png}{Initial interleaving explored by the parallel algorithm}
+
+Figure \ref{Initial interleaving explored by the parallel algorithm} depicts the initial step of the parallel source-DPOR. 
+This initial execution sequence, along with detected races is partitioned into fragments which get assigned to different schedulers.
+This image also contains the initial execution tree which represents the state space that exists in our exploration frontier
+at this point.
+
+\tracelong{source3f.png}{Exploration of the assigned traces by each scheduler}
+
+In Figure \ref{Exploration of the assigned traces by each scheduler} we illustrate how each scheduler explores its assigned 
+execution sequence. The first scheduler explores its first trace: $p.r.q.q$ (equivalent to the second trace 
+at Figure \ref{Interleavings explored by the sequential source-DPOR}). After the race detection takes place,
+there are no backtrack entries added below its assigned trace. The only execution sequence planned is the sequence $r$. However,
+this sequence is not explored since it does not belong to the state space of the scheduler. The controller assigned to the
+second scheduler the execution sequence $q$. After exploring its first trace, two more races are detected. It is important to notice
+here that the first trace of the second scheduler is equivalent to the third trace of the sequential algorithm. However,
+the sequential algorithm detects only one race. This happens because on the sequential algorithm the race between $q: read(x)$ and
+$r:write(x)$ had already been detected at the second interleaving and so its planning gets skipped. 
+On the contrary, on the parallel algorithm this interleaving
+is explored by another scheduler and therefore, there is no knowledge of this race been already detected. This leads to
+both our schedulers having detected the same race. Nevertheless, in both schedulers this new backtrack entry is outside of their
+state space. 
+
+This means that they will have to report their results back to the controller. The schedulers that reports first its results, 
+will be the one to update the execution tree by inserting the new entry found. This
+scheduler will add its execution sequence to the frontier, which will be again partitioned
+(no need for a partition here since the unexplored frontier will only have one race). Then this execution sequence will be
+assigned to an idle scheduler. The scheduler that reports second to the controller, will not be able to insert its 
+backtrack entry into the execution tree, because that entry will already be there, and the backtrack entry gets removed
+from its execution sequence. This execution sequence will be left with no more backtrack entries and as such it will not be
+inserted into the frontier. This guarantees that we do not explore identical interleavings more than once.
+
+Lets assume that Scheduler 1 was the one that managed to report first to the Controller. Then the execution tree will be the one
+depicted in Figure \ref{Execution Tree if Scheduler 1 returned first}. Notice here that the states explored by the Scheduler 1
+were deleted from the execution tree. This keeps the size of the execution tree proportionate to the size of 
+the current exploration frontier. At this point Scheduler 1 will add its execution sequence to the frontier. Then the 
+controller will assign this sequence to Scheduler 1 (since Scheduler 2 has not yet returned), and Scheduler 1 will explore
+the last 2 traces (trace 5 and 6 from the sequential example). After both Scheduler 1 and 2 have returned the execution 
+will have finished since there will no more traces left to explore.
+
+
+\tracelong{source4f.png}{Execution Tree if Scheduler 1 returned first}
+
+\section{Parallel optimal-DPOR}
+
+\subsection{Basic Idea}
+
+Parallelizing the optimal-DPOR algorithm is significantly more complicated. We do know that whenever a call to 
+$Explore(E, Sleep, WuT)$ returns during Algorithm \ref{optimal}, then for all maximal execution sequences
+of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+However, the complete $WuT$ at some execution sequence $E$ cannot be known until we have completed
+exploring all execution sequences which are ordered before $E$, according to the total order of our state space
+(Definition \ref{def:Ordered}). This happens because the $insert_{[E']}(v,wut(E'))$ function can add
+entries to any wakeup tree of an execution sequence that is ordered after the current execution sequence.
+
+Therefore, when assigning an incomplete wakeup tree to a scheduler there is no
+guarantee that the scheduler will explore the complete assigned state space. This means that if a
+scheduler inserts a fragment into a wakeup tree owned by a different scheduler, we cannot know if that 
+fragment (or a different but equivalent fragment) was indeed explored, unless there is some form of
+centralized race detection.
+
+However, we do know that any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
+\cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that during the sequential algorithm, any fragment that
+is inserted into a wakeup tree is a fragment that must be explored. Therefore, when we insert a fragment into a wakeup tree,
+we can explore it out of order. We can take advantage of this to create an algorithm that can explore many interleavings in parallel
+but race detects each explored interleaving sequentially.
+
+\subsection{Algorithm Presentation}
+
+Due to the fact that we need to have parallel exploration of interleavings but sequential planning, we need to decouple the
+the normal exploration loop of a scheduler into two different parts: $state$ $exploration$ and $race$ $detection-planning$.
+Our workers (the Schedulers) will be responsible for the first part. For the second part, we are going to use a centralized
+planner. However, in order to be able to better distribute the available work to the schedulers when the planner is busy,
+we are also going to use a Controller.
+
+\begin{algorithm}
+    \caption{Optimal Controller}
+    \label{optcontrollerloop}
+    \Fn{controller\_loop($Schedulers$)}{
+        $E_0 \leftarrow$ an arbitrary initial execution sequence\;
+        $Frontier \leftarrow[E_0]$\;
+        $T \leftarrow$ an execution tree rooted at $E_0$\;
+        $PlannerQueue \leftarrow empty$\;
+        \While{ $size(Frontier) > 0$ \textnormal{and} $ size(PlannerQueue) > 0$} {
+            $partition(Frontier)$\;
+            \While{ exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
+                $E_c \leftarrow$ a copy of $E$\;
+                $spawn(S, explore(E_c))$\;
+            }
+            \While{ the Planner is idle and PlannerQueue $\neq$ empty }{
+                $E \leftarrow PlannerQueue.pop()$\;
+                $update\_trace(E, T)$\;
+                $spawn(Planner, plan(E))$\;
+            }
+            $wait\_response(Frontier, T, PlannerQueue)$\;
+        }
+           
+    }
+
+\end{algorithm}
+
+Algorithm \ref{optcontrollerloop} describes the functionality of the Controller. Similarly to the source-DPOR parallel version,
+the Controller is responsible for maintaining the current Frontier (as well as partitioning it) and the current Execution Tree
+and for assigning execution sequences to schedulers, for as long we have idle schedulers and available work.
+
+Apart from that, the Controller also maintains a queue of fully explored execution sequences that need to be race detected.
+When the Planner is idle and the queue is not empty, the execution sequence is updated (through $update\_trace(E,T)$)
+and then is sent to the Planner so its races can be detected. When updating the execution sequence from the execution tree,
+the subtrees of the execution tree which are ordered after the execution sequence (according to the ordering of our state
+space Definition \ref{def:Ordered}) are inserted into the execution tree as $not\_owned$ wakeup trees. This guarantees
+that no redundant fragments are going to be inserted for future explorations and therefore, the algorithm remains optimal. 
+
+The $plan(E)$ function race detects the fully explored execution sequence $E$ according to the logic of optimal-DPOR 
+(Algorithm \ref{optimal}). When the planning of the sequence is finished the results are reported back to the Contoller.
+The $explore(E)$ function explores the execution sequence $E$ until a maximal execution sequence
+has been reached and reports back that execution sequence to the Controller.
+
+
+\begin{algorithm}
+    \caption{Optimal Frontier Partitioning}
+    \label{optpartition}
+    \Fn{partition($Frontier$)}{
+        \For{all E $\in$ Frontier}{
+            \While{ $wakeup\_tree\_leaves(E) > 1$ }{
+                $E' \leftarrow $ \textnormal{a prefix of $E$
+                with $wut(E') \neq \emptyset $} \;
+                $v \leftarrow \textnormal{ a leaf} \in wut(E') $\;
+                $E_c' \leftarrow \textnormal{ a copy of } E'$\;
+                \textnormal{mark $v$ as $not\_owned$ at $ wut(E')$}\;
+                $\{Prefix, v, Suffix\} \leftarrow split\_wut\_at(v, wut(E_c'))$\;
+                \textnormal{add the first processes of $Prefix$ to $ sleep(E_c')$}\;
+                \textnormal{mark $ Suffix $ as $not\_owned$ at $ wut(E_c')$}\;
+                \textnormal{add $E_c'$ to $ Frontier$}\;
+            }
+        }
+    }
+
+\end{algorithm}
+
+Partitioning the exploration frontier (Algorithm \ref{optpartition}) has two main differences, compared to the parallel source-DPOR.
+Firstly, the frontier gets partitioned completely, so we can maximize the parallelization of the exploration phase. 
+Secondly, the entries that are distributed from one execution sequence, are not simply removed from the backtrack and added to
+the sleep set. It is vital here to maintain the correct ordering between the interleavings (Definition \ref{def:Ordered}). Therefore,
+the given entry simply is marked as $not\_owned$ at the distributed sequence. The function  $split\_wut\_at(v, wut(E_c'))$
+splits the copy of the wakeup tree to 3 parts: the $Prefix$ (the wakeup tree entries ordered before the branch $v$), the leaf $v$
+and the $Suffix$ (the wakeup entries ordered after $v$). The first processes processes of the entries of
+the $Prefix$ are added to the sleep set at the new execution sequence $E_c'$ (e.g. if $p.q.r$ is a leaf in $Prefix$, then $p$ is added to
+$sleep(E_c')$). The $Suffix$ entries are marked as $not\_owned$ at $E_c'$.
+
+\begin{algorithm}
+    \caption{Handling Scheduler and Planner Response}
+    \label{optresponse}
+    \Fn{wait\_response(Frontier, T, PlannerQueue)}{
+        \textbf{receive} a message M\;
+        \uIf{ M is sent from a Scheduler}{  
+            $E \leftarrow M$\;
+            $PlannerQueue.push(E)$\;
+        }
+        \uElseIf{M is sent from the Planner}{
+            $E \leftarrow M$\;
+            $update\_execution\_tree(E, T)$\;
+            \textnormal{add $E$ to $Frontier$}\;
+        }
+    }
+\end{algorithm}
+
+After assigning the available work to the available schedulers and the Planner, the Controller will wait for a response
+either from a scheduler or the Planner (Algorithm \ref{optresponse}). When a response is received from a scheduler,
+the fully explored received execution sequence will be added to the queue of the Planner and the Controller will continue
+with its loop (Algorithm \ref{optcontrollerloop}). If a response is received from the Planner, the Controller will update
+the execution tree $T$ by adding the new wakeup trees that were inserted by the planner and by deleting the suffix of
+the execution sequence that was just explored and has no wakeup trees. We delete this part in order to have the 
+execution tree only contain the part of the state space that is either currently getting explored or is planned to be explored.
+If we were to not delete those suffixes the size of the execution tree would eventually be the size of our complete state space.
+
+\subsection{Example}
+
+\begin{figure*}
+    \begin{minipage}{0.3\textwidth}
+      \begin{lstlisting}[frame=none, numbers=none]
+        p:
+        i = N
+        while x[i] != 0 and i > 0:
+            i = i - 1
+      \end{lstlisting}
+    \end{minipage}
+    \begin{minipage}{0.3\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            q:
+            R1 = x[0]
+            R2 = x[0]
+            assert(R1 == R2)
+            x[1] = R2 + 1
+        \end{lstlisting}
+      \end{minipage}
+      \begin{minipage}{0.3\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            r:
+            R3 = x[0]
+            R4 = x[1]
+            assert(R3 == R4)
+            x[2] = R4 + 1
+        \end{lstlisting}
+      \end{minipage}
+      \caption{$Lastzero$ 2 example}
+      \label{optexample}
+  \end{figure*}
+
+In Figure \ref{optexample} we can se the pseudocode of $lastzero$ 2, were we have an array of 3 elements (initially all elements have
+a zero value) and 3 processes. The first process ($p$) searches the array for the zero element with the highest index. 
+The other two processes increase their assigned element by a value of 1.
+
+\tracelonglong{opt1.png}{Interleavings explored by the sequential optimal-DPOR}
+
+Figure \ref{Interleavings explored by the sequential optimal-DPOR} represents 
+the traces explored during the sequential optimal-DPOR.
+We use a black bold rectangle to represent a new event and a faint rectangle to denote a replayed event. 
+The continuous red edges represent the races that are detected and planned. The red nodes represent the wakeup tree entries
+at each trace.
+
+\tracelonglong{opt3.png}{Initial interleaving explored by the parallel optimal-DPOR}
+
+Figure \ref{Initial interleaving explored by the parallel optimal-DPOR} depicts the initial step of the parallel optimal-DPOR. 
+An arbitrary execution sequence is explored initially and then its races are detected and planned in the form of wakeup trees.
+The wakeup trees are distributed into different fragments and all unassigned fragments are assigned into the idle schedulers.
+Also the execution tree is initialized with the current exploration frontier.
+
+In this example, lets assume that Scheduler 2 finishes first the exploration of its assigned trace. The controller will
+then receive the new explored trace and will add this trace to the queue of the Planner. Since the Planner is idle,
+this trace will be sent to the Planner to be race detected. While race detecting this trace, no more interleavings will be 
+planned. This trace is equivalent to the 3rd trace of the sequential execution 
+(Figue \ref{Interleavings explored by the sequential optimal-DPOR}). Notice here that in the sequential algorithm
+this trace had an additional wakeup tree. This wakeup tree was planned by the 2nd trace of the sequential algorithm,
+which has yet to be race detected in our example. Therefore, traces 4 and 5 of the sequential algorithm cannot be
+planned from the 3rd trace but only from the 2nd. This makes apparent the main issue of the parallelization of the optimal-DPOR:
+the complete wakeup tree at some execution sequence $E$ cannot be known until we have completed
+exploring all execution sequences which are ordered before $E$, according to the total order of our state space
+(Definition \ref{def:Ordered})

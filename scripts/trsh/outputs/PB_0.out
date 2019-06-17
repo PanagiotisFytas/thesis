@@ -1,0 +1,220 @@
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpgjfrxzpn/tmprt9jn6mf.ll -S -emit-llvm -g -I v3.0 -std=gnu99 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpgjfrxzpn/tmpfsltl1az.ll /tmp/tmpgjfrxzpn/tmprt9jn6mf.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpgjfrxzpn/tmpfsltl1az.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp6v6giixc/tmpvg_ixvr8.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DFORCE_FAILURE_1 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp6v6giixc/tmp_ijritpf.ll /tmp/tmp6v6giixc/tmpvg_ixvr8.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp6v6giixc/tmp_ijritpf.ll
+Total wall-clock time: 0.18 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp0sx5_01_/tmpofcuchzj.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DFORCE_FAILURE_3 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp0sx5_01_/tmph0jhzjkl.ll /tmp/tmp0sx5_01_/tmpofcuchzj.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp0sx5_01_/tmph0jhzjkl.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpslkp0ohn/tmpje8p7ttg.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DFORCE_FAILURE_5 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpslkp0ohn/tmpm8yl4zwf.ll /tmp/tmpslkp0ohn/tmpje8p7ttg.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpslkp0ohn/tmpm8yl4zwf.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmppxi4gb4i/tmpqfemubt3.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DLIVENESS_CHECK_1 -DASSERT_0 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmppxi4gb4i/tmplqzcvwug.ll /tmp/tmppxi4gb4i/tmpqfemubt3.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmppxi4gb4i/tmplqzcvwug.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpl3sqo5sa/tmpujs0vxvh.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DLIVENESS_CHECK_2 -DASSERT_0 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpl3sqo5sa/tmpuf98rjo_.ll /tmp/tmpl3sqo5sa/tmpujs0vxvh.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpl3sqo5sa/tmpuf98rjo_.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 6 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmppi22ga4r/tmp5qx6cxur.ll -S -emit-llvm -g -I v3.0 -std=gnu99 -DLIVENESS_CHECK_3 -DASSERT_0 litmus_v3.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmppi22ga4r/tmpxc1nwf9y.ll /tmp/tmppi22ga4r/tmp5qx6cxur.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmppi22ga4r/tmpxc1nwf9y.ll
+Total wall-clock time: 0.18 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp6qtx8116/tmpsm95n3y0.ll -S -emit-llvm -g -I v3.19 -std=gnu99 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp6qtx8116/tmpu3t6qpid.ll /tmp/tmp6qtx8116/tmpsm95n3y0.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp6qtx8116/tmpu3t6qpid.ll
+Total wall-clock time: 0.31 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp8yi07dj6/tmpxpleih94.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DFORCE_FAILURE_1 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp8yi07dj6/tmpaxzfk9w8.ll /tmp/tmp8yi07dj6/tmpxpleih94.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp8yi07dj6/tmpaxzfk9w8.ll
+Total wall-clock time: 0.31 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 9 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp7mbc28tg/tmpd4wmgzqc.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DFORCE_FAILURE_3 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp7mbc28tg/tmpf67byebi.ll /tmp/tmp7mbc28tg/tmpd4wmgzqc.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp7mbc28tg/tmpf67byebi.ll
+Total wall-clock time: 0.32 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpmw09wl1k/tmpwi58u60j.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DFORCE_FAILURE_5 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpmw09wl1k/tmp7xha0cj6.ll /tmp/tmpmw09wl1k/tmpwi58u60j.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpmw09wl1k/tmp7xha0cj6.ll
+Total wall-clock time: 0.30 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpnvj7h4cz/tmpxhqc414c.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DLIVENESS_CHECK_1 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpnvj7h4cz/tmp_qr8n16r.ll /tmp/tmpnvj7h4cz/tmpxhqc414c.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpnvj7h4cz/tmp_qr8n16r.ll
+Total wall-clock time: 0.31 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmppmp4lq6q/tmp0vtmflwu.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DLIVENESS_CHECK_2 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmppmp4lq6q/tmpyp271f_y.ll /tmp/tmppmp4lq6q/tmp0vtmflwu.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmppmp4lq6q/tmpyp271f_y.ll
+Total wall-clock time: 0.31 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpw97a8xx4/tmp7fddlpv5.ll -S -emit-llvm -g -I v3.19 -std=gnu99 -DLIVENESS_CHECK_3 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpw97a8xx4/tmp17wnnhc0.ll /tmp/tmpw97a8xx4/tmp7fddlpv5.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpw97a8xx4/tmp17wnnhc0.ll
+Total wall-clock time: 0.30 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp8op79nkx/tmpj9i2k7sy.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp8op79nkx/tmpn68itbi1.ll /tmp/tmp8op79nkx/tmpj9i2k7sy.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp8op79nkx/tmpn68itbi1.ll
+Total wall-clock time: 0.59 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpie13be5a/tmp_x6qtdvv.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DFORCE_FAILURE_1 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpie13be5a/tmpt5cuap89.ll /tmp/tmpie13be5a/tmp_x6qtdvv.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpie13be5a/tmpt5cuap89.ll
+Total wall-clock time: 0.59 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 9 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpojcd06y2/tmpkvlvbabe.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DFORCE_FAILURE_3 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpojcd06y2/tmpfhy9bsrj.ll /tmp/tmpojcd06y2/tmpkvlvbabe.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpojcd06y2/tmpfhy9bsrj.ll
+Total wall-clock time: 0.61 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpbbwhza9y/tmpzdw719am.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DFORCE_FAILURE_5 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpbbwhza9y/tmpq21d11s2.ll /tmp/tmpbbwhza9y/tmpzdw719am.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=0 --preemption-bounding=PB --print-progress-estimate --disable-mutex-init-requirement /tmp/tmpbbwhza9y/tmpq21d11s2.ll
+Total wall-clock time: 0.58 s
+^^^ Unexpected verification success
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp1rv7jn5d/tmpq9k2y8is.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DLIVENESS_CHECK_1 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp1rv7jn5d/tmp4nilw5_n.ll /tmp/tmp1rv7jn5d/tmpq9k2y8is.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp1rv7jn5d/tmp4nilw5_n.ll
+Total wall-clock time: 0.59 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp7ttf0kbh/tmpocs8myft.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DLIVENESS_CHECK_2 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp7ttf0kbh/tmpphpz5mwh.ll /tmp/tmp7ttf0kbh/tmpocs8myft.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp7ttf0kbh/tmpphpz5mwh.ll
+Total wall-clock time: 0.59 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+Trace count: 2 (also 0 sleepset blocked, 0 schedulings and 8 branches were rejected due to the bound) 
+No errors were detected.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp2sk797q3/tmpfa5zu2vp.ll -S -emit-llvm -g -I v4.9.6 -std=gnu99 -DLIVENESS_CHECK_3 -DASSERT_0 litmus.c
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp2sk797q3/tmps6v8rjsf.ll /tmp/tmp2sk797q3/tmpfa5zu2vp.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=PB --bound=0 --print-progress-estimate --disable-mutex-init-requirement /tmp/tmp2sk797q3/tmps6v8rjsf.ll
+Total wall-clock time: 0.60 s
+--------------------------------------------------------------------
+---  UNEXPECTED VERIFICATION RESULTS
+--------------------------------------------------------------------

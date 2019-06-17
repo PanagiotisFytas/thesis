@@ -1,0 +1,2 @@
+Trace count: 15 (also 2 sleepset blocked, 4 schedulings and 1 branches were rejected due to the bound) 
+Total wall-clock time: 0.04 s

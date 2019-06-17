@@ -1,0 +1,280 @@
+\chapter{Επιπλέον Συζήτηση του Bounding Problem}
+\label{Chapter 5}
+
+Σε αυτό το κεφάλαιο συζητόνται εναλλακτικές προσεγγίσεις του preemption bounding problem για τον DPOR.
+Προτείνεται μια καινούρια προσέγγιση η οποία δείχνουμε ότι είναι ισοδύναμη με την προσθήκη συντηρητικών διακλαδώσεων η οποία όμως δεν χρησιμοποιεί 
+συντηρητικές διακλαδώσεις.
+
+\section{Τεχνικές χωρίς την Προσθήκη Συντηρητικών Διακλαδώσεων}
+
+Σε προηγούμενο κεφάλαιο συζητήσαμε τις προκλήσεις που προκύπτουν από τη σχεδίαση ενός Bounded DPOR αλγορίθμου. Είδαμε ότι δεν μπορούν να γίνουν
+σημαντικές βελτιώσεις όταν προσθέτουμε συντηρητικές διακλαδώσεις και ότι πολλές βελτιστοποιήσεις που δουλεύουν για τις μη φραγμένες εκδοχές των
+αλγορίθμων δεν δουλεύουν για τις φραγμένες εκδοχές τους.
+
+\subsection{Κίνητρο}
+Ο μόνος αλγόριθμος που δεν προσθέτει συντηρητικές διακλαδώσεις είναι ο Naive-BPOR. Για ένα επαρκές bound ένα trace που περιείχε 
+σφάλμα θα εξετάζοταν από τον αλγόριθμο. Το ελλάτωμα αυτού του αλγορίθμου είναι ότι δεν είναι sound.
+Σε αυτό τον αλγόριθμο μια συνάρτηση υπολογίζει τον αριμό των preemptive switches. Όμως πολλές switches που υπολογίζονται μπορούν να 
+αποφευχθούν.
+
+Ένα παράδειγμα δίνεται στο Figure \ref{An example of avoidable preemption-switch} που εξηγεί καλύτερα την ιδέα. Έστω 
+ένα πρόγραμμα που αποτελείτα από τις διεργασίες $p$ και $q$. Η διεργασία $p$ γράφει μια μοιραζόμενη μεταβλητή $x$ και η διεργασία $q$ διαβάζει
+μια μεταβλητή $y$ (η οποία δεν τροποιείται από κάποια άλλη διεργαία), και γράφει την μεταβλητή $x$. Υπάρχουν δύο δυνατά 
+interleavings όπως φαίνεται και στην εικόνα. Αν υποθέσουμε ότι κάνουμε εξερεύνηση με bound $0$ τότε και μια συντηρητική διακλάδωσηη πρέπει να 
+προστεθεί.
+
+\trace{motivation.pdf}{An example of avoidable preemption-switch}
+
+Στο Figure \ref{An example of avoidable preemption-switch} το preemptive switch που λαμβάνει χώρα θα μπορούσε εύκολα να αποφευχθεί αντιστρέφοντας
+απλώς την πρώτη εντολή του $q$ με την πρώτη την $p$. Αλλά τί επιτρέπει αυτή την αλλαγή;
+
+Η απάντηση βρίσκεται στα γεγονότα που αποτελείται το block. Στην περίπτωσή μας το block αποτελείται από 
+ένα μόνο βήμα. Το πρώτο block διαβάζει μια μεταβλητή που δε χρησιμοποιείτα από άλλο block. Επομένως τα δύο block δεν έχουν happens-before
+σχέση.
+
+Η παρατήρηση αυτή οδηγεί στο επόμεον ερώτημα: Ποία preemption switches είναι υποχρεωτικά; Ή ισοδύναμα ποια traces δεν μπορούν να παραχθούν
+χωρίς preemptive switch; Επιπλέον, είναι δυνατό για ένα trace να υπολογίσουμε τον ελάχιστο αριθμό από preemptive switches που θα απαιτούσε ένα
+ισοδύναμο trace;
+
+\subsection{Ένας Αλγόριθμος χωρίς Συντηρητκές Διακλαδώσεις}
+Ένας αλγόριθμος που θα έκανε bounded search θα ήταν διαφορετικός από τον Naive-BPOR μόνο σε ότι αφορά τη συνάρτηση που υπολογίζει το
+preemption count της δρομολόγησης. Αυτή η συνάρτηση $f$ θα ήταν αύξουσα δηλαδή θα ίσχυε για ένα πρόθεμα $E$, $f(E) \leq f(E.E')$ για κάθε $E'$.
+
+Η γενική μορφή του αλγορίθμου δίνεται στον Αλγόριθμο \ref{NBBPOR}.
+
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \caption{General form of the BPOR without branch addition}
+    \label{NBBPOR}
+    \KwResult{Explore the whole state space within the bound}
+    Explore($\emptyset$)\;
+    \Fn{Explore($S$)}{
+        T = Sufficient\_set($final(S)$)
+     \For{all $t \in T$}{
+         \If{$min\{B_v([S.t])\} \leq c$}{
+            Explore($S.t$)
+         }
+        }
+    }
+\end{algorithm}
+
+Συγκρίνοντας τον Αλγόρθμο \ref{NBBPOR} με τον \ref{GeneralDPOR} παρατηρούε ότι αντί να υπολογίζουμε το $B_v(S.t)$ δηλαδή το preemption
+count ενός trace υπολογίζουμε το $min(B_v[S.t])$ δηλαδή το ελάχιστο $B_v$ για όλα τα ισοδύναμα traces.
+
+\subsection{Υπολογισμός του Ελάχιστου Preemption Count}
+To μόνο που μας μένει είναι η κατασκεύ της συνάρτησης $f$. Για ένα trace $E$ που αποτελείται από blocks πολλές σχέσεις 
+happens-before ισχύουν. Κάθε ισοδύναμο trace πρέπει να συμφωνεί με αυτές τις σχέσεις. Επίσης σχέσεις happens-before ισχύουν
+για τις εντολές εντός ενός block. Γι αυτή την ενότητα μόνο θα μας απασχολήσουν οι σχέσεις μεταξύ blocks.
+Οι λόγοι που έγινε αυτή η επιλογή είναι οι εξής:
+
+\begin{itemize}
+    \item Οι αλγόριθμοι που παρουσιάζονται στη συνέχεια είναι πολύ πιο απλοί.
+    \item Δεν μας ενδιαφέρει να σπάσουμε περαιτέρω κάθε block και επομένως μπορούμε να δούμε τοblock σαν μια ενότητα.
+\end{itemize}
+
+Αυτές οι σχέσεις happens-before σχηματίζουνε ένα γράφο. Αυτός ο γράφος αποτελείται από κόμβους που αντιστοιχούν σε blocks και 
+ακμές που αντιστοιχούν στις σχέσεις μεταξύ τους. Προφανώς block που ανήκουν στο ίδιο thread έχουν happens-before σχέση.
+Επίσης μπορούμε να κινηθούμε από το ένα block στο άλλο από τη στιγμή που αυτά είναι ταυτόχρονα.
+Προσθέτουμε βάρη σε κάθε ακμή. Ακμές που συνδέουν blocks του ίδιου thread έχουν βάρος $0$. Οι ακμές που ξεκινάν από block
+που είναι μπλοκαρισμένα έχουν επίσης βάρος $0$. Οι υπόλοιπες ακμές έχουν βάρος ένα.
+
+Προκειμένου να βρούμε το ελάχιστο preemption count διασχίζουμε όλα τα block του γράφου χωρίς να παραβιάζουμε τις happens-before σχέσεις.
+Επομένως το minimum bound count αντιστοιχεί στο ελάχιστο hamiltonian μονοπάτι το οποίο δεν παραβίαζει τις happens-before σχέσεις.
+
+Επειδή ο υπολογισμός του ελάχιστου hamiltonian μονοπατιού είναι απαιτητικός κατασκευάζουμε ένα γράφο που περιορίζει όσο αυτό είναι
+δυνατό πιθανές διασχίσεις που παραβιάζουν τις σχέσεις happens-before.
+
+\noindent Ένας αλγόριθμος που προσθέτει τα blocks στο γράφο είναι δίνεται στον Αλγόριθμο \ref{Adding a new block to the
+dependencies graph}. Ο αλγόριθμος λειτουργεί επαγωγικά. Αρχικά ο γράφος αποτελείται από το πρώτο block. Όταν block
+του trace ολοκληρώνεται το προσθέτουμε στο γράφο. Προσθέτουμε κάθε block που συμβαίνει ταυτόχρονα με ένα άλλο block με διπλή ακμή
+Επιπλέον συνδέουμ το πιο πρόσφατο block κάθε thread που συμβαίνει πριν από το καινούριο block με ακμες που καταλήγουν στο καινούριο block.
+
+\SetKw{Return}{return \;}
+\SetKw{Break}{break \;}
+\begin{algorithm}[H]
+    \caption{Adding a new block to the dependencies' graph}
+    \label{Adding a new block to the dependencies graph}
+    \Fn{AddBlock(block,graph)}{
+        \If{previous block of the same thread was not blocked}{
+            increase the weigh of the edges coming from the previous block to 1 \;
+        }
+
+        \For{each thread t}{
+            list:= preceding blocks t\;
+            \For{l in reversed(list)}{
+                \If{$l \leftrightarrow block$}{
+                    add edge from $block$ to $l$ with weight $0$ \;
+                    \If{$l$ is not last}{
+                        add edge from $l$ to $block$ with weight $1$ \;
+                    }
+                    \Else{
+                        add edge from $l$ to $block$ with weight $0$ \; 
+                    }
+                }
+                \If{$l \rightarrow block$}{
+                    \If{$l$ is not last}{
+                        add edge from $l$ to $block$ with weight $1$ \;
+                    }
+                    \Else{
+                        add edge from $l$ to block with weight $0$ \; 
+                    }
+                    \Break
+                }
+            }
+        }
+    }
+\end{algorithm}
+
+
+\trace{compulsoryswitch.pdf}{Graph example}
+
+Στο Figure \ref{Graph example} ένα απλό παράδειγμα ενός τέτοιου γράφου παρουσιάζεται. Για το trace παρατηρούμε ότι το $w(y)$ του thread 
+$q$ είναι ταυτόχρονο με το $r(x)$ ενώ συμβαίνει πριν το $w(y)$ του $p$ thread. Κάθε μετάβαση κοστίζει 1 preemption switch και γι αυτό
+το λόγο έχει βάρος 1.
+Επιπλέον, μεταβάσεις μεταξύ των ίδιων thread κοστίζουν 0. Είναι σημαντικό να σημειώσουμε ότι αν παραβιάσουμε τις happens-before σχέσεις
+δεν υπάρχει διάσχιση που να μπορεί να διασχίσει όλους τους κόμβους. Για παράδειγμα ξεκινώντας από το $r(x)$ και μεταβένοντας στο
+$w(x)$ δεν υπάρχει τρόπος να διασχίσουμε όλους του κόμβους.
+
+Μπορούμε να δούμε ότι το hamiltonian path με βάρος 1 για ένα trace. Αυτό είναι και το ελάχιστο hamiltonian μονοπάτι.
+
+Έτσι έχουμε καταφέρει να ανάξουμε το πρόβλημα του minimum preemption coount στο πρόβλημα του minimum hamiltonian path.
+Το πρόβλημα αυτό είναι γνωστό  NP-hard. Έτσι δεν μπρούμε να αναμένουμε ο αλγόριθμος που υπολογίζει το βάρος να είναι θεαματικά πιο γρήγορος
+από μια εξερεύνηση DFS. 
+
+Αυτό είναι πολύ ενδιαφέρον αποτελέσμα καθώς απεικονίζε τη δυσκολία του DPOR bounding problem καθώς η προσθήκη των συντηρητικών διακλαδώσεων
+υπονοεί αυτή την DFS αναζήτηση.
+
+Τώρα που έχουμε διαπιστώσει τη δυσκολία του προβλήματος ένα καινυριο ερώτημα δημιουργείται. Μπορούμε να προσεγγίσουμε το βάρος του ελάχιστου μονοπατιού;
+Ένας τέτοιας αλγόριθμος δεν θα ήταν sound αλλά θα ήταν μια βελτίωση στον Naive-BPOR χωρίς να έχουμε την έκρηξη του χώρου καταστάσεων.
+
+\subsection{Προσεγγίζοντας το Bound Count}
+Δύο μέθοδη δοκιμάστηκαν για να προσεγγίσουμε την τιμή του preemption count. Η ιδέα και για τους δύο αλγορίθμους βασίζεται στην εξής παρατήρηση:
+Ένα preemption switch είναι υποχρεωτικό αν δύο block της ίδιας διεργασίας A διακόπτονται από ένα block της διεργασίας B.
+Δηλαδή αν ισχύει $e_1(A) \rightarrow e(B) \rightarrow e_2(A)$. Στην περίπτωση που ίσχυε $e_1(A) \not \rightarrow e(B)$ ή
+$e(B) \not \rightarrow e_2(A)$ θα μπορούσαμε να αντιστρέψουμε τα blocks χωρίς να παραβιάζουμε τις happens-before σχέσεις.
+
+Ο Αλγόριθμος παρουσιάζεται εδώ:\\
+
+\SetKwProg{Fn}{Function}{}{}
+\begin{algorithm}[H]
+    \caption{First Approximation Algorithm}
+    \label{First Approximation Algorithm}
+    \Fn{BoundCount($E$,$current\_bound$)}{
+        \For{$i=0 \text{ to } len(E)-1$}{
+            \If{$E[i].pid = last(E).pid$}{
+                $higher\_block = i$ \;
+                \Break
+            }
+        }
+        \For{$i = higher\_block+1 \text{ to } len(E)-1$}{
+            \If{$ E[higher\_block] \rightarrow E[i] \rightarrow last(E)$}{
+                current\_bound++ \;
+                \Return
+            }
+        }
+    }
+\end{algorithm}
+
+Στον Αλγόριθμο \ref{First Approximation Algorithm} εντοπίζουμε το πιο πρόσφατο block με το ίδιο pid με το τελευτάιο block. Στη συνέχεια προσπαθούμε να βρούμε αν υπάρχει κάποιο
+γεγονός που συμβαίνει μετά το πρώτο γεγονός και πριν το τελευταίο.
+Αν αυτό υπάρχει τότε αυξάνουμε τον μετρητή.
+Προκειμένου να διαπιστώσουμε τις happens-before σχέσεις τα vector clocks μπορούν να χρησιμοποιηθούν.
+
+Ο δεύτερος αλγόριθμος εξερευνεί μεγαλύτερο κομμάτι του state space.\\
+
+\begin{algorithm}[H]
+    \caption{Second Approximation Algorithm}
+    \Fn{BoundCount($E$,$current\_bound$)}{
+        \For{$i=len(E)-1 \text{ to } 0$}{
+            \If{$E[i].pid = last(E).pid$}{
+                $lower\_block = i$ \;
+                \Break
+            }
+        }
+
+        \For{$i = lower\_block+1 \text{ to } len(E)-1$}{
+            \If{$ E[lower\_block] \rightarrow E[i] \rightarrow last(E)$}{
+                current\_bound++\;
+                \Return
+            }
+        }
+    }
+\end{algorithm}
+
+\subsection{Αξιολόγηση των Αλγορίθμων Προσέγγισης}
+Οι προηγούμενες προσεγγίσεις που συζητήθηκαν παρουσάζουν κάποια ενδιαφέροντα αποτελέσματα. Και οι δύο αλγόριθμοι φαίνεται να είναι πιο 
+``sound'' και από τον BPOR και εξερευνούν traces που ξεπερνούν το bound. Αυτό προκύπτει από το γεγονός ότι τείνουν να
+υποεκτιμούν το preemption count καθώς πιο πολύπλοκες σχέσεις δεν αποκαλύπτονται.
+Παρατηρούμε ότι στο writer-N-readers ο αριθμός των traces είναι σταθερός για κάθε bound. Αυτό οφείλεται στο όιτ κάθε thread αποτελείται από μόνο 
+μια εντολή.
+
+\graph{img/wNrLB.png}{writer-N-readers bounded by the first estimation algorithm}
+\smalltabular{tables/lazy1_bounded.tex}{Traces for the first estimation algorithm for various bound limits}
+
+\subsection{Υλοποίηση του Lazy-BPOR}
+
+Τα προηγούμενα testcases δείξαν ότι μπορύμε να αποφύγουμε το state space explosion καθώς δεν προσθέτουμε συντηρητικές διακλαδώσεις.
+Το επόμενο βήμα είναι η υλοποίηση του Lazy-BPOR, ενός αλγορίθμου που υπολογίζει με ακρίβεια τα compulsory switches.
+Η διαφορά του από τον Naive-BPOR είναι οτι διατηρεί ένα γράφο καθ᾽ όλη τη διάρκεια εκτέλεσης του DPOR
+Η προσθήκη των κόμβων γίνεται όπως έχει ήδη περιγραφεί.
+Το preemption count γίνεται με τον υπολογσιμό του minimum hamiltonian path.
+
+\begin{algorithm}
+    \caption{Lazy-BPOR}
+    \label{Lazy-BPOR}
+    \Let{$G =: \emptyset$}
+    Explore($\langle \rangle$,$\emptyset$,$G$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$G$,$b$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$ such that $B_v(E.p) \leq b$ }{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p) $}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) to backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                \If{$p$ creates a new block}{
+                    \Let{$block$ = $last\_block(E)$}
+                    \Let{$G'$ = add\_block($block$,$G$)}
+                }
+                \If{$min \{ Ham\_path(G') \text{ which compensate with all happens-before relations of } E \} \leq b $}{
+                    $Explore(E.p, Sleep,G',b)$ \;
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+
+
+
+\subsection{Lazy-BPOR - Αξιολόγηση στο RCU}
+
+Τα αποτελέσματα παρουσιάζονται στη συνέχεια. Συγκρίνουμ τον Lazy-BPOR με την buggy εκδοχή του BPOR. 
+
+Στα Figures \ref{Comparison between DPOR and Lazy-BPOR} και \ref{Comparison between BPOR and Lazy-BPOR} παρουσιάζουμε τα αποτελέσματα για τα διάφορα testcases του RCU.
+
+
+\landscapetabular{"tables/lazy_comp.tex"}{Comparison between DPOR and Lazy-BPOR}
+
+\landscapetabular{"tables/lazy_buged_comp.tex"}{Comparison between DPOR and Lazy-BPOR without the bug}
+
+
+Συγκρίνοντας τα αποτελέσματα παρατηρούμε ότι ο Lazy-BPOR εξετάζει λιγότερα traces αλλά απαιτεί περισσότερο χρόνο καθώς ο υπολογισμός του preemption count απαιτεί
+αρκετό χρόνο.
+
+\landscapetabular{"tables/hline_pandas_lazy_preep.tex"}{Comparison between BPOR and Lazy-BPOR}
+
+\section{Συμπεράσματα}
+Παρόλο που ο Lazy-BPOR δεν είναι πιο αποδοτικός από τους υπόλοιπους αλγορίθμους που παρουσιάστηκαν σε αυτή τη διπλωματική παρουσιάζει μερικά ενδιαφέρονται αποτελέσματα.
+
+\begin{itemize}
+    \item Μπορούμε να εξερευνήσουμε το preemption-bounded state space χωρίς την προσθήκη conservative branches.
+    \item Καθώς δεν προσθέτει συντηρητικές διακλαδώσεις δίνει ένα άνω φράγμα στον αριθμό των traces πολύ μικρότερο από αυτό του BPOR (τον αριθμό των traces της unbounded εκδοχής)
+    \item Το πιο ενδιαφέρον είναι ότι ανάγει την preemption-bounded search σε ένα γνωστό γραφοθεωρητικό πρόβλημα το οποίο μπορεί να επιδεχθεί ευρηστικές για την 
+        επιτάχυνση του υπολογισμού του hamiltonian path.
+\end{itemize}
+

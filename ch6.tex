@@ -1,0 +1,135 @@
+\chapter{Performance Evaluation}
+\label{perfresults}
+
+In this chapter we are going to present the performance results of our parallel source-DPOR and optimal-DPOR algorithms,
+implemented in Concuerror. We are going to evaluate our results on some standard and synthetic programs that are normally
+used to test DPOR algorithms. Finally, we will try to explain the behavior of the parallel program as reflected in those
+charts, drawing related conclusions whenever possible.
+
+\section{Tests Overview}
+
+First we are going to give a brief overview of the programs tested:
+
+\begin{itemize}
+    \item $indexer$ $N$: This test uses a Compare and Swap (CAS) primitive instruction to check if a specific element of
+    a matrix is set to 0 and if so, set it to a new value. This implemented in erlang by using $ETS$ tables and specifically
+    the $insert\_new/2$ function. This function return false if the key of the inserted tuple exists (the entry is set to 0)
+    or it inserts the tuple if the key is not found.
+    \item $readers$ $N$: This benchmark uses a writer process that writes a variable and N reader processes that read that variable.
+    \item $writers$ $N$: This is a modification of the readers test. Here we have a reader process that reads a variable and 
+    N writer processes that write that variable. The fact that we have many writers creates more races and therefore more work
+    for our program.
+    \item $ lastzero$ $N$: In this test we have N+1 processes that read and write on an array of N+1 size, which has all its 
+    values initialized with zero. The first process reads the array in order to find the zero element with the highest
+    index. The other N processes read an array element and updated the next one.
+\end{itemize}
+
+Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks} contains information about the traces explored and duration of those
+explorations for the sequential versions of Source-DPOR and Optimal-DPOR.
+
+\smalltabular{"tables/synthetic_unbounded.tex"}{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks}
+
+The benchmarks were performanced on a multiprocessor with 64 AMD Opteron 6276(2.3 GHz) cores, 126 GB of memory, running
+Linux 4.9.0-8amd64 and running the later Erlang version (Erlang/OTP 21.1). While running our tests, we are using the
+--$keep\_going$ flag to continue exploring our state space, even after an error is found. We do this so we can evaluate
+how fast the complete state space gets explored.
+
+\section{Source DPOR}
+
+\subsection{Preformance Results}
+
+Here we are going to present graphs depicting the execution time and the speedup ($T_{serial} 
+\over T_{parallel}$) of the source DPOR algorithm
+for different numbers of schedulers and for various test cases. Also we are going combine the 
+speedups for those test cases in a comparative graph (Figure \ref{Speedup comparison for source-DPOR}).
+
+(Note: more benchmarks will be added)
+
+\tracelonglong{scripts/indexerCombined.png}{Performance for indexer 15}
+\tracelonglong{scripts/readers15combined.png}{Performance for readers 15}
+\tracelonglong{scripts/lastzero11combined.png}{Performance for lastzero 11}
+\mediumGraph{scripts/allspeedup.png}{Speedup comparison for source-DPOR}
+\iffalse
+\mediumGraph{scripts/indexer15_time.png}{Execution time for indexer 15}
+\mediumGraph{scripts/readers15_time.png}{Execution time for readers 15}
+\mediumGraph{scripts/writers11_time.png}{Execution time for writers 11}
+
+\mediumGraph{scripts/indexer15_speedup.png}{Speedup for indexer 15}
+\mediumGraph{scripts/readers15_speedup.png}{Speedup time for readers 15}
+\mediumGraph{scripts/writers11_speedup.png}{Speedup time for writers 11}
+\fi
+
+\subsection{Performance Analysis}
+
+As we can see in our charts, our parallel implementation of source-DPOR in Concuerror significantly reduces the testing
+time of our test cases. Namely, in the cases of both lastzero and indexer we have a speedup by a factor of 1.9 for 2 schedulers and
+of 3.9 for 4 schedulers. This makes parallel source DPOR highly usable in personal computers.
+
+Additionally, we are getting decent scalability in test cases like lastzero11 and indexer15. Particularly, with
+32 schedulers we manage as speedup by a factor of 16 in the case of lastzero. However, through the scalability charts 
+we can notice that with more schedulers the scalability of those test cases starts to decline. This happens because we
+are using a centralize controller which becomes a bottleneck, since the more the schedulers the
+higher the chance the controller will be busy and therefore, unable to distribute work. The most important reason 
+behind this drop in scalability though, is the fact that with more available schedulers the assignment of the state
+space of the program becomes more fine grained. A more fine grained assignment leads to the schedulers exploring their
+assigned state space faster and having more races found outside their state space (since the state space is smaller).
+Consequently, the communication with the controller is more frequent. This situation is problematic for two reasons:
+the communication between a scheduler and the controller has a non-negligible overhead and when the amount of 
+communications between the schedulers and the controller increases, the controller becomes an even bigger bottleneck.
+As such, we come to the conclusion that a test case cannot scale beyond a certain point based on the number of its interleavings.
+
+From Figure \ref{Speedup comparison for source-DPOR} we can notice the scalability of readers15 breaks significantly faster
+compared to that of the other test cases, despite the fact that readers15 has more explored traces than indexer15
+(Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks}). This means that number of the traces explored
+is not the only scalability factor and different test cases with equivalent sizes can have varied results.
+
+\section{Optimal DPOR}
+
+\subsection{Preformance Results}
+
+Our parallel optimal-DPOR fails to achieve any type of speedup, as depicted in Figure 
+\ref{Execution time for readers 10 by optimal-DPOR}. Table \ref{Parallel Optimal-DPOR performance}
+holds information about how our implementation runs on various test cases. The exploration and planning
+time row show what percentage of the time of the sequential algorithm is spend on exploring and planning interleavings.
+Those measurements will help us explain the reason for this lack of speedup.
+
+\mediumGraph{scripts/readers10_timedd.png}{Execution time for readers 10 by optimal-DPOR}
+
+
+\smalltabular{"tables/opttab.tex"}{Parallel Optimal-DPOR performance}
+
+\subsection{Performance Analysis}
+
+This lack of performance is completely justified through the exploration and planning percentages of the sequential algorithm,
+presented at Table \ref{Parallel Optimal-DPOR performance}. While the percentage of exploration time in the case of a small test
+case like readers10 is around 40$\%$, we have observed that for larger test cases this figure varies between 10$\%$-30$\%$. 
+This means that even on an ideal setup, with zero overhead and infinite schedulers, our speedup could never exceed a factor
+of 1.429 (on a test case with 70$\%$ planning time, if we consider that the exploration phase happens instantly the 
+speedup would be 1.429 = $100\over 70$, since the planning phase would still have to take place sequentially). 
+This reason, by itself, makes our algorithm impossible to achieve good performance and scalability.
+
+To make matters worse, our algorithm also has a significant overhead. As mentioned before, communication between
+the controller and the workers can be a substantial bottleneck. The parallel source-DPOR deals with it by assigning
+a state space to the workers, minimizing the need for communication. However, in the parallel optimal-DPOR algorithm
+the need for central planning leads to the scheduler having to report a trace back to the controller every sigle
+time an exploration reaches its end. Also, in this case, before the centralized planner can race detect a trace,
+we have to update this trace with the wakeup trees that ordered after the trace
+(Definition \ref{def:Ordered}) and have been inserted into the execution tree
+since the last time this trace was planned (Algorithm \ref{optcontrollerloop}).
+
+\section{Final Comments}
+
+The fact that optimal-DPOR lacks speedup does not mean that we have not benefited from our parallelization. 
+The good resutls produced by the parallel source-DPOR help the source-DPOR algorithm outperform the sequential optimal-DPOR.
+
+When there are no sleep-set blocked interleavings the sequential source-DPOR
+can run faster than the optimal-DPOR (Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks}). 
+In the case of readers15, for instance, the sequential source-DPOR is already faster by the optimal algorithm by
+around 13 minutes. If we combine this with speedup of the parallel version, the benefit of our parallelization becomes clear.
+
+Still, even when we have a significant amount of sleep-set blocked interleavings, like in the case of lastzero11, our parallel
+source-DPOR can fairly easily catch up with the optimal-DPOR. Specifically, the optimal algorithm has an execution time of 23m32.843s
+and explores 7168 interleavings, while the source-Algorithm has an execution time of 50m39.201s and explores 60073 interleavings.
+By using two schedulers, the runtime of source-Algorithm drops to 26m33.051s and with four schedulers to 13m19,016s. As we add
+schedulers source-DPOR will outperform the optimal algorithm even more.
+

@@ -1,0 +1,272 @@
+\chapter{Dynamic Partial Order Reduction}
+\label{dpor}
+
+\section{Basic DPOR Concepts}
+
+Generally, DPOR algorithms use a depth-first backtrack search to explore the state-space of a concurrent system.
+This exploration is driven by two basic concepts: \textit{persistent sets} and \textit{sleep sets}, which make sure to explore a
+sufficient portion (at least one interleaving from different Mazurkiewicz traces) of the state-space,
+while trying to minimize any unnecessary exploration.
+
+Intuitively, a persistent set at a state $s$ is (specific) subset of $enabled(s)$ whose exploration guarantees that all
+non-equivalent interleavings (from different Mazurkiewicz traces) will be explored. This is vital in proving the correctness of Classic 
+DPOR algorithms \cite{FlanaganDPOR}, on the assumption 
+(that is taken into account by our abstraction) that our state space is acyclic and finite.
+The way that such sets are constructed differs from paper to paper \cite{FlanaganDPOR, Lei:2006:RTC:1248722.1248743, 10.1007/3-540-53863-1_36},
+and those variations can lead to different degrees of state-space reduction.
+
+The sleep set technique, being complimentary to persistent sets (it does not contribute to the soundness of algorithm),
+aims to further reduce the number of the explored interleavings.
+A sleep set at an execution sequence $E$ contains processes, whose exploration would be redundant,
+preventing equivalent interleavings from being explored.
+
+Specifically, after $E.p$ has been explored, process $p$ is added to the sleep set
+at $E$. From this point on, $p$ will exist in any sleep set of an execution sequence
+of the form $E.w$, provided that $E.w$ is also an execution sequence and $E\models p \diamondsuit w$. 
+The processes in the sleep set are not going to be executed from this point on, unless a dependency gets detected. 
+For instance, $p$ will be removed from the sleep set at $E.w.q$ if a dependency gets detected between the
+next steps of $q$ and $p$. 
+
+It can be proved \cite{Godefroid1996} that sleep sets will eventually block all the redundant interleavings and thus 
+the only interleavings that are going to be explored fully will belong to different Mazurkiewicz traces.
+However, this does not mean sleep sets avoid all redundant explorations. To elaborate, sleep sets 
+make it possible for the exploration of an interleaving, which belongs to the same Mazurkiewicz trace as another
+interleaving that has already been explored, to eventually block, by having all of its enabled processes
+appear in the sleep set. This is called $sleep$-$set$ $blocking$ and it means that all possible traces, from this point on,
+are redundant and therefore, need not be explored further. Sleep sets do not guarantee optimality 
+for a DPOR algorithm, since redundant traces get explored, albeit not completely.
+
+Source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} replaces persistent sets with \textit{source sets} in order to achieve a 
+significantly better reduction in the amount of the explored interleavings. However, source-DPOR still suffers from sleep-set 
+blocking. Optimal-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} 
+combines the concept of source sets with \textit{wakeup trees} to fully avoid sleep-set blocking and lead to the exploration
+of an optimal subset of interleavings.
+
+\section{Source Sets}
+
+Before defining source sets formally, we need to define the concepts 
+of possible initial steps in an execution sequence \cite{AbdullaAronisJohnssonSagonasDPOR2014}:
+
+\begin{definition}{(Initials after an execution sequence $E.w$, $I_{[E]}(w)$)}\\
+For an execution sequence $E.w$, let $I_{[E]}(w)$ denote the set of
+processes that perform events $e$ in $dom_{[E]}(w)$ that have no
+“happens-before” predecessors in $dom_{[E]}(w)$. More formally,
+$p \in I_{[E]}(w)$ if $p \in w$ and there is no other event $e \in dom_{[E]}(w)$ with
+$e \rightarrow_{E.w} next_{[E]}(p)$.
+\end{definition}
+
+By relaxing this definition, we can get the definition of Weak Initials, $WI$:
+
+\begin{definition}{(Weak Initials after an execution sequence $E.w$, $WI_{[E]}(w)$)}\\
+For an execution sequence $E.w$, let $WI_{[E]}(w)$ denote the union of $I_{[E]}(w)$ and the set of
+processes that perform events $p$ such that $p \in enabled(s_{[E]}) $.
+\end{definition}
+
+To clarify these notations, for an execution sequence $E.w$:
+\begin{itemize}
+    \item  $p \in I_{[E]}(w)$ iff there is a sequence $w'$ such that $E.w \simeq E.p.w'$, and
+    \item  $p \in WI_{[E]}(w)$ iff there are sequences $w'$ and $v$ such that $E.w.v \simeq E.p.w'$.
+\end{itemize}
+
+\begin{definition}{(Source Sets)}\\
+Let $E$ be an execution sequence,
+and let $W$ be a set of sequences, such that $E.w$ is an execution
+sequence for each $w \in W$. A set $T$ of processes is a source set for
+$W$ after $E$ if for each $w \in W$ we have $WI_{[E]}(w) \cap P  = \emptyset$.
+\end{definition}
+
+A direct consequence of this definition is that every 
+set of processes that can cover the complete state space after an execution sequence $E$
+can be considered a source set of $E$.
+
+\section{Source-DPOR}
+Here we present the source-DPOR algorithm \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}
+    \caption{Source-DPOR}
+    \label{Source}
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$\;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{[E']}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E')$\;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$\;
+                add $p$ to $Sleep$\;
+
+            }
+        }
+    }
+\end{algorithm}
+
+An execution step $Explore(E, Sleep)$ is responsible for the explorations of all Mazurkiewicz traces 
+that begin with the prefix $E$. These explorations start by initializing $backtrack(E)$ with an arbitrary enabled process
+that is not in the sleep set ($Sleep$). From this point forward, for each process $p$ that exists in $backtrack(E)$
+source-DPOR will perform two main phases.
+
+During the first phase (race detection), we find all events $e$ that occur in $E$ (i.e., $e \in dom(E)$) which are racing
+with the next event of $p$, and that race can be reversed ($e \lesssim_{E.p} next_{[E]}(p)$). For each such event $e$, we 
+are trying to reverse that race by ensuring that the next event of $p$ gets performed before $e$, or using the symbolism
+of the algorithm, that a sequence equivalent to $E.notdep(e,E).p.proc(e).z$ ($z$ is any continuation of the execution sequence)
+is explored.
+Such a trace could be explored by taking the next available step from any process in $I_{[E']}(notdep(e,E).p)$ (where $E'=pre(E,e)$)
+at $E'$. Therefore, a process from $I_{[E']}(notdep(e,E).p)$ is added to the backtrack set  at $E'$, provided that it is not already there.
+
+During the last phase (exploration), we recursively explore $E.p$. The sleep set at $E.p$ is initialized appropriately 
+by taking the sleep set at $E$ and removing all processes whose next step is dependent with the next step of $p$. This ensures
+that at $E.p$ we will not consider the races of processes that have already been considered, unless they race with the new
+scheduled process $p$. After $E.p$ finished its exploration, $p$ is added to the sleep set at $E$,
+because we want to refrain from executing an equivalent trace.
+
+Practically, on Concuerror the algorithm is structured differently. The main difference is that the algorithm goes into the race
+detection phase when an interleaving has reached its end. At this point all the races that occurred in the interleaving
+are detected and backtrack points are inserted in the appropriate prefixes of the complete execution sequence. Then the exploration
+continues by exploring the backtrack set of the longest prefix first. This does not affect the soundness of the algorithm 
+since the only thing that changes is the order in which new interleavings are explored.
+
+We should note here that $Explore(E, Sleep)$ does not need any additional information from the various prefixes of $E$ that
+has not already been established. However, $Explore(E, Sleep)$ can add backtrack points to the various prefixes of $E$. This
+is vital and must be taken into consideration while trying to parallelize source-DPOR.
+
+\section{Wakeup Trees}
+
+In order to achieve optimality, we must completely avoid having sleep-set blocked interleavings. This is achieved by
+combining a mechanism called wakeup trees \cite{AbdullaAronisJohnssonSagonasDPOR2014} with source sets.
+
+Notice that in source-DPOR a sequence of the form $E'.notdep(e,E).p.proc(e).z$ needs to be explored, but only
+a single process from the Initials set of $notdep(e,E).p$ is potentially added to the backtrack set.
+Therefore, a piece 
+of information on how to reverse the race gets lost. This may lead to sleep-set blocking, since an alternative sequence could be explored 
+instead. Intuitively, wakeup trees hold in the form of a tree the fragments that need to be explored in order
+to explore the necessary interleavings, while avoid sleep-set blocking.
+
+In order to define wakeup trees, we first present the generalizations of 
+the concepts of Initials and Weak Initials so they can contain sequences of processes instead of just processes:
+
+\begin{itemize}
+    \item $v \sqsubseteq_{[E]} w $ denotes that exists a sequence $v'$ such that $E.v.v'$ and $E.w$ are execution
+    sequences with the relation $E.v.v' \simeq E.w$. What this means is that after $E$, $v$ is a possible
+    way to start an execution that is equivalent to $w$. To connect this to the concept of Initials we have
+    $p \in I_{[E]}(w)$ iff $p \sqsubseteq_{[E]} w $.
+    \item $v \sim_{[E]} w $ denotes that exist sequences $v'$ and $w'$ such
+    that $E.v.v'$ and $E.w.w'$ are execution sequences with the relation $E.v.v' \simeq E.w.w'$.
+    What this means is that after $E$, $v$ is a possible way to start an execution that is equivalent to $E.w.w'$.
+    To connect this to the concept of Weak Initials we have $p \in WI_{[E]}(w)$ iff $p \sim_{[E]} w $.
+\end{itemize}
+
+\begin{definition}{(Ordered Tree)}\label{def:Ordered}\\
+An $ordered$ $tree$ is a pair $\langle B , \prec \rangle$, where B (the set of nodes) is a finite prefix-closed
+    set of sequences of processes with the empty sequence $\langle\rangle$ being the root.
+    The children of a node $w$, of form $w.p$ for some set of processes $p$, are ordered by $\prec$. 
+    In $\langle B , \prec \rangle$, such an ordering between children has been extended to the total 
+    order $\prec$ on $B$ by letting $\prec$ be the induced post-order relation between the nodes in $B$.
+    This means that if the children $w.p_1$ and $w.p_2$ are ordered as $w.p_1 \prec w.p_2$,
+    then $w.p_1 \prec w.p_2 \prec w $ in the induced post-order.
+\end{definition}
+
+\begin{definition}{(Wakeup Tree)}\\
+    Let $E$ be an execution sequence and $P$ a set of processes. a $wakeup$ $tree$ after $\langle E , P \rangle$
+    is an ordered tree $\langle B , \prec \rangle$, for which the following properties hold:
+    \begin{itemize}
+        \item $WI_{[E]}(w) \cap P = \emptyset$ for every leaf $w$ of $B$.
+        \item For every node in $B$ of the form $u.p$ and $u.w$ such that $u.p \prec u.w$ and $u.w$ is a leaf
+        the $p \not \in WI_{[E.u]}(w)$ property must hold true.
+    \end{itemize}
+\end{definition}
+
+\subsection{Operations on Wakeup Trees}
+
+
+
+An important operation used by the optimal-DPOR algorithm is the insertion of new initial fragments of interleavings,
+which need to be explored, into the wakeup tree.
+
+Considering a wakeup tree $\langle B , \prec \rangle$ after $\langle E , P \rangle$ and some sequence $w$ with
+$E.w$ being an execution sequence such that $WI_{[E]}(w) \cap P = \emptyset$, the following properties are used to 
+define the $insert_{[E]}(w,\langle B , \prec \rangle)$:
+
+\begin{itemize}
+    \item $insert_{[E]}(w,\langle B , \prec \rangle)$ is also a wakeup tree after $\langle E , P \rangle$.
+    \item Any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$.
+    \item $insert_{[E]}(w,\langle B , \prec \rangle)$ contains a  leaf $u$ with $u \sim_{[E]} w$.
+\end{itemize}
+
+Let $v$ be the smallest (according to the $\prec$ order) in $B$ with $v \sim_{[E]} w$. The operation 
+$insert_{[E]}(w,\langle B , \prec \rangle)$ can either be taken as $\langle B , \prec \rangle$, provided that
+$v$ is a leaf, or by adding $v.w'$ as a leaf and ordering it after all existing nodes in $B$ of form $v.w''$,
+where $w'$ is the shortest sequence with $w \sqsubseteq_{[E]} v.w'$.
+
+Let us also describe the $subtree(\langle B , \prec \rangle, p)$ operation. For a wakeup tree $\langle B , \prec \rangle$
+and a process  $p \in B$, $subtree(\langle B , \prec \rangle), p)$ is used to denote the
+subtree of $\langle B , \prec \rangle$ rooted at $p$. More formally, $subtree(\langle B , \prec \rangle), p) 
+= \langle B' , \prec' \rangle$ where $B' = \{w \mid p.w \in B \}$ and $\prec'$ is the extension of $\prec$ to $B'$
+
+\section{Optimal-DPOR} 
+
+Here the optimal-DPOR algorithm is presented as described in its original paper \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}
+    \caption{Optimal-DPOR}
+    \label{optimal}
+    \Fn{Explore($E$,$Sleep$,$WuT$)}{
+        \uIf{$enabled(s_{[E]}) = \emptyset$}{
+            \ForEach{$e,e' \in dom(E)$ such that ($e \lesssim_{E} e'$)}{
+                \Let{$E' = pre(E,e)$}
+                \Let{$v = notdep(e,E).proc(e')$}
+                \If{$sleep(E') \cap WI_{[E']}(v)= \emptyset$}{
+                    $insert_{[E']}(v,wut(E'))$\;
+                }
+            }
+        }
+    \Else {
+        \uIf{$WuT \not = \langle \{ \langle \rangle \}, \emptyset \rangle$}{
+            $wut(E) := WuT$\;
+        }
+        \Else {
+            choose $p \in enabled(s_{[E]})$\;
+            $wut(E) := \langle \{ p \}, \emptyset \rangle $\;
+        }
+        $sleep(E) := Sleep$\;
+        \While{$\exists p \in wut(E)$}{
+            \Let{ $p = min_{\prec}\{ p \in wut(E)\}$}
+            \Let{$Sleep' := \{q \in sleep(E) \mid E \models p \diamondsuit q \} $}
+            \Let{$WuT' = subtree(wut(E), p)$}
+            $Explore(E.p, Sleep', WuT')$\;
+            add $p$ to $sleep(E)$\;
+            remove all sequences of form $p.w$ from $wut(E)$\;
+        }
+    }
+    }
+\end{algorithm}
+
+Similarly, with the other algorithms, optimal-DPOR has two different phases: race detection and state exploration. 
+However, the algorithm is structured differently. In the same way that source-DPOR is structured at Concuerror,
+optimal-DPOR only detects the races when a maximal execution sequence has been reached (i.e., there exist no
+enabled processes). This is necessary because the condition for inserting new wakeup trees is only
+valid when the fragment that is going to be inserted contains all the events in the complete executions that 
+do not happen after $e$ and those that occur after $e$.
+
+The race detection phase works mostly similarly with source-DPOR. The main differences have to do with the fact that
+we require the knowledge of the sleep set for every prefix $E'$ and that the concepts of Weak Initials is used instead of
+the Initials to determine whether a fragment is going to be inserted at the wakeup tree, which is rooted at the prefix $E'$.
+
+In the exploration phase of a non-maximal execution sequence, the wakeup tree of that sequence is initialized to the 
+given $WuT$. If $WuT$ is empty, then an arbitrary enabled process is chosen, in the same way that it would for the non-optimal algorithms.
+Afterwards, for every process that exists in $WuT$ the explore function is going to be called recursively, with the appropriate
+subtree of $wut(E)$. This guarantees that the complete fragment gets explored. After the recursive call finishes,
+the sequences that were explored are removed from the wakeup tree. Sleep sets are handled in a similar way with previous 
+algorithms.
+
+As the name suggests, optimal-DPOR is optimal in the sense that it never explores two maximal execution sequences
+that belong to the same Mazurkiewicz trace, since it can be proven that no interleaving is sleep-set blocked
+\cite{AbdullaAronisJohnssonSagonasDPOR2014}.

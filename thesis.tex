@@ -1,0 +1,321 @@
+\documentclass[diploma, english]{softlab-thesis}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage{float}
+\usepackage{color}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{graphicx}
+\usepackage{pdfpages}
+%\usepackage{refcheck}
+
+\usepackage{url}
+\usepackage[colorlinks]{hyperref}
+\hypersetup{
+  bookmarksnumbered,
+  citecolor={blue},
+  linkcolor={blue},
+  urlcolor={blue},
+  pdfpagemode={UseOutlines}
+}
+
+\usepackage{amsthm}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[chapter]
+
+\usepackage[ruled,vlined,linesnumbered]{algorithm2e}
+
+
+\usepackage{listings}
+\usepackage{lstlinebgrd}
+\lstset{
+    numbers=left,
+    numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    frame=single,
+    frameround=tttt,
+    showstringspaces=false,
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^
+}
+\lstdefinestyle{custom}{
+    numbers=left,
+    numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    frame=single,
+    frameround=tttt,
+    showstringspaces=false,
+    rulecolor=\color{black},
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^,
+    moredelim=**[is][\color{blue}]{@}{@}
+}
+
+\lstnewenvironment{code}[2]{
+  \nopagebreak
+  \lstset{language=Erlang, label={#1}, caption={#2}, style=custom}
+}{}
+
+\lstnewenvironment{code_appendix}{
+  \nopagebreak
+  \lstset{language=Erlang, style=custom, numbers=none,rulecolor=\color{black}}
+}{}
+
+\lstnewenvironment{console}[2]{
+  \nopagebreak
+  \lstset{label={#1}, caption={#2}, numbers=none, style=custom}
+}{}
+
+
+\usepackage{etoolbox}
+\expandafter\patchcmd\csname \string\lstinline\endcsname{%
+  \leavevmode
+  \bgroup
+}{%
+  \leavevmode
+  \ifmmode\hbox\fi
+  \bgroup
+}{}{%
+  \typeout{Patching of \string\lstinline\space failed!}%
+}
+\newcommand{\ccode}[1]{\lstset{language=C}\protect\lstinline!#1!}
+
+%% My commands
+\newcommand{\EndAlg}{\BlankLine 
+\BlankLine 
+\BlankLine 
+\BlankLine}
+
+\graphicspath{ {img/} }
+\newcommand{\trace}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\tracelong}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.4]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\tracelonglong}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\graph}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.8]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\mediumGraph}[2]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.5]{#1}
+    \caption{#2}
+    \label{#2}
+    \end{figure}
+    }
+
+\newcommand{\Code}[2]{
+  \begin{minipage}{\linewidth}
+  \lstinputlisting[caption=#2]{#1}
+  \label{#2}
+  \end{minipage}
+ }
+
+\newcommand{\Output}[2]{
+  %%\BVerbatimInput[fontsize=\tiny]{#1}
+  \begin{minipage}{0.85\textwidth}
+  \lstinputlisting[label={#2},numbers=none,frame=none,caption=#2]{#1}
+  \end{minipage}
+  %%\caption{#2}
+ }
+
+\newcommand{\Side}[5]{
+  %\begin{figure}
+    \begin{minipage}{0.5\textwidth}
+      \lstinputlisting[frame=none, numbers=none,caption={[#2]}]{#1}
+    \end{minipage}
+    %%\begin{minipage}{0.1\textwidth}
+    %%  \includegraphics[scale=0.1]{arrow.pdf}
+    %%\end{minipage}
+    \begin{minipage}{0.5\textwidth}
+      %%\VerbatimInput{#2}
+      \lstinputlisting[frame=none, numbers=none,caption={[#4]}]{#3}
+    \end{minipage}
+    \captionof{figure}{#5}
+    \label{#5}
+    
+     % \caption{#5}
+     % \label{#5}
+  %\end{figure}
+} 
+
+\newcommand{\bigtabular}[2]{
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+}
+
+\newcommand{\landscapetabular}[2]{
+\begin{landscape}
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+\end{landscape}
+}
+
+\newcommand{\smalltabular}[2]{
+  \begin{table} 
+     \input{#1}
+     \caption{#2}
+     \label{#2}
+  \end{table} 
+}
+
+%%%
+%%%  The document
+%%%
+
+\begin{document}
+
+%%%  Title page
+
+\frontmatter
+
+\title{Parallelizing Concuerror: A Dynamic Partial Order Reduction Testing Tool for Erlang Programs}
+\author{Panagiotis Fytas}
+\date{September 2018}
+\datedefense{01}{11}{2018}
+
+\supervisor{Konstantinos Sagonas}
+\supervisorpos{Associate Professor NTUA}
+
+\committeeone{Konstantinos Sagonas}
+\committeeonepos{Associate Professor NTUA}
+\committeetwo{Nikolaos S. Papaspyrou}
+\committeetwopos{Associate Professor NTUA}
+\committeethree{Nectarios Koziris}
+\committeethreepos{Professor NTUA}
+
+\TRnumber{CSD-SW-TR-1-16}  % number-year, ask nickie for the number
+\department{Division of Computer Science}
+
+\maketitle
+
+
+%%%  Abstract, in Greek
+
+\iffalse
+\begin{abstractgr}%
+  
+\input{./abstract_gr.tex}
+  
+\begin{keywordsgr}
+\input{./keywords_gr.tex}
+\end{keywordsgr}
+\end{abstractgr}
+\fi
+
+%%%  Abstract, in English
+%%\iffalse
+\begin{abstracten}%
+  
+\input{./abstract_en.tex}
+  
+\begin{keywordsen}
+\input{./keywords_en.tex}
+\end{keywordsen}
+\end{abstracten}
+%%\fi
+
+%%%  Acknowledgements
+
+\iffalse
+\begin{acknowledgementsgr}
+
+
+\end{acknowledgementsgr}
+\fi
+
+\begin{acknowledgementsen}
+
+
+\end{acknowledgementsen}
+
+%%%  Various tables
+
+\tableofcontents
+\listoftables
+\listoffigures
+\listoflistings
+\listofalgorithms
+\addcontentsline{toc}{chapter}{List of Algorithms}
+%%%  Main part of the book
+
+\mainmatter
+
+
+\input{./ch1.tex}
+\input{./ch2.tex}
+\input{./dpor.tex}
+\input{./ch4.tex}
+\input{./ch5.tex}
+\input{./ch6.tex}
+\nocite{*}
+
+%%%  Bibliography
+
+\bibliographystyle{softlab-thesis}
+\bibliography{thesis}
+
+
+
+%%%  End of document
+
+\end{document}

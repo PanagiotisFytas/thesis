@@ -1,0 +1,323 @@
+\chapter{Algorithms' Implementations}
+\label{implementations}
+
+Nidhugg is a bug-finding tool which targets bugs caused by scheduling non-determinism
+and relaxed memory consistency in concurrent programs. It works on the
+level of LLVM internal representation, which means that it can be used
+for programs written in languages such as C or C++ which can compile to llvm and implement shared-memory concurrency using the pthreads
+library.
+
+At the time this thesis was written Nidhugg supported the SC, TSO, PSO and POWER memory
+models. On the other hand, Nidhugg does not handle data non-determinism and, thus,
+thread should be deterministic when run in isolation.
+
+\section{Nidhugg's Work Flow}
+
+Nidhugg works on the level of LLVM intermediate representation (IR). In order for Nidhugg to find a bug it creates an
+interpreter for the LLVM assembly. It then schedules and executes the different traces until an error is found such as
+the violation of an assertion. Traces play the most important role in Nidhugg as they represent different schedulings.
+These traces are represented as vectors of Events objects. The Event object maintains all the useful information about
+the event such as the pid of the thread that was executed. Branches which cause the exploration of different
+interleavings are also stored in the Event object. The scheduling is regulated by the Tracebuilder object which depends
+on the memory model used. Tracebuilder is also responsible for checking for races between different threads that access
+the same memory.
+
+The execution follows in general the flow that is represented in Figure \ref{Nidhugg's Flow Chart}. As the flow chart
+suggests, Nidhugg maintains a TraceBuilder object. The trace builder tries to schedule new events according to the
+schedule() routine. After scheduling, the events are executed and the vector clocks are updated. Then it is checked
+whether this event is dependent with other events, i.e., accesses the same memory locations. After that, Nidhugg tries
+to add branches to the appropriate places of the branch and checks whether any errors were produced. In case of error
+the procedure stops and the error is reported. Notice that Nidhugg can be set so it can continue the exploration so more
+errors can be found. In absence of errors trace builder resets to the most recent branch. Then the whole trace is
+executed until that point and the next branch is scheduled. When no more resets are available, the execution terminates.
+
+As far as the algorithm is concerned it is clear that the most important part of the flow chart is the detection of dependencies. 
+
+\mediumGraph{flowchartv2.pdf}{Nidhugg's Flow Chart}
+
+\section{Branch addition in Nidhugg}
+
+Once a command, which is likely to cause a concurrent error, is scheduled the see\_accesses vector is created which
+contains all the accesses that took place in the same memory location and calls the procedure \verb|see_events()|.
+
+\begin{algorithm}
+    \caption{see\_events()}
+    \Fn{$see\_events(seen\_access)$}{
+        $branches := seen\_access - \{ a \in seen\_access \mid a  \rightarrow last(E)$ or $\exists a' \in seen\_access$ which happens after $ a \}$ \;
+        $update\_clocks()$ \;
+        \ForEach{$b \in  branches $}{
+            $add\_branch(b)$ \;
+        }
+     }
+\end{algorithm}
+
+As it transparent from the algorithm the function's purpose is to filter out all the access that are not in a race with
+the current access, i.e., the dependencies that cannot be represented as a trace with no other concurrent event
+occurring between them. It is important to notice that this does not suggest that these events cannot be concurrent in
+another scheduling. The events that were not discarded as not in race events are stored in the branch vector and checked
+by the \verb|add_branch()| function.
+
+Another task of \verb|see_events()| is the update of the vector clocks. Two events that are in race will be concurrent
+for Nidhugg before the execution of this routine. At the end of the routine, however, the clocks will be updated so the
+last event happens after the \verb|seen_access| events.
+
+The \verb|add_branch()| function shown in Algorithm \ref{add_branch} is the most crucial for the whole Nidhugg infrastructure.
+
+\begin{algorithm}
+    \caption{add\_branch()}
+    \label{add_branch}
+    \Fn{add\_branch($b$)}{
+        $candidates$ = $\emptyset$ \;
+        $lc := null$ \;
+        $E' := E \text{ starting from } next(b)$ \; 
+        \ForEach{$e \in dom(E')$}{
+            \If{$b \rightarrow e$ or $\exists c \in candidates : c \rightarrow e $}{
+                continue \;
+            }
+
+            $lc := e.pid$\;
+            \If{$lc \in candidates$}{
+                continue \;
+            }
+
+            \If{$e.pid \in backtrack(b)$ or $e.pid \in sleep\_set$}{
+                    return \;
+            }
+            $candidates := candidates \cup lc$ \;
+        }
+        $backtrack(b) := backtrack(b) \cup lc $ \;
+    }
+\end{algorithm}
+
+Intuitively, add\_branch does the following: Beginning from the event that conflicts with the most recently scheduled
+event, start traversing the vector that represents $E$ until the closest to the end of the trace thread is found (if
+that is possible). In fact what really happens is the calculation of the $I$ (initials) set. As suggested in the
+algorithm if there is an already added thread to the branch or the sleep set the procedure will be terminated.
+
+As a result \verb|add_branch()| calculates a source set.
+
+\section{Implementation of Nidhugg-DPOR}
+
+The implementation of the persistent sets is based on the already implemented infrastructure of vector clocks.
+Specifically the \verb|include()| function of vector clocks lets as determine whether $i \rightarrow p$. The algorithm
+of the \verb|includes()| is given in Algorithm \ref{include routine}. Following the notation of Source-DPOR $\langle e,
+i \rangle$ is an already scheduled event which is the i th step of process $e$  and $p$ is the most recently backtracked
+event of process $p$. 
+
+\begin{algorithm}
+    \caption{includes() routine}
+    \label{include routine}
+    \Fn{includes($ \langle e, i \rangle$, p)}{
+        return $i \leq p.clock[e]$
+    }
+\end{algorithm}
+
+To calculate the $CI$ set we just need to prevent the \verb|add\_branch()| function from rejecting branches due to
+threads that belong to $I$ but not to $CI$. An example of the modification is presented at Algorithm \ref{addbranch
+routine for persistent sets}.
+
+\begin{algorithm}
+    \caption{add\_branch() for persistent sets}
+    \label{addbranch routine for persistent sets}
+    \Fn{add\_branch($b$)}{
+        $candidates = \emptyset$ \;
+        $lc = null$
+        $E'$ := $E text{starting from} next(b)$ \; 
+        \ForEach{$e in dom(E')$}{
+            \If{$b \rightarrow e \text{ or } \exists c \in candidates \mid c \rightarrow e $}{
+                continue \;
+            }
+
+            \If{$e \rightarrow last(E)$}{
+                $lpc := e.pid$\;
+            }
+
+            $lc := e.pid$\;
+
+            \If{$e.pid \in backtrack(b) or e.pid \in sleep\_set(b)$}{
+                \If{$lc \rightarrow last(E)$}{
+                    return \;
+                }
+            }
+        }
+        \If{$lpc$}{
+            $backtrack(b) := backtrack(b) \cup lpc $
+        }
+        \Else{$backtrack(b) := backtrack(b) \cup lc $}
+    }
+\end{algorithm}
+
+In case that E is empty we can just use a candidate that it is suggested from $I$ set.
+
+\section{Implementation of Naive-BPOR}
+
+The first step in order to implement any bounding technique is the implementation of a bound counter. Since we are
+intrested in implementing a preemption bounded algorithm we should be able to know the bound count of each event i.e.,
+how many preemptive switches happened until the current event. 
+
+The first observation we make is that preemption bound count is a property of each event, thus, apart from any other
+information the event object should maintain a counter attribute. Moreover the bound counter should be known to the
+TraceBuilder as well, since it is responsible for the scheduling. Such an attribute will prove pretty useful later when
+preemption-bounded algorithm will be implemented.The second step is to track where new events are added to the trace.
+There are two occasions when new events are added. New events are added during the scheduling. Here the implementation
+of the counter is rather straightforward. Taking advantage of an already implemented attribute that indicates the
+availability of the thread we can store whether the pid of the previous event corresponds to an available thread and
+thus, conclude if a preemptive switch happened. The other occasion when an event is added to the trace is during reset.
+Unfortunately, the availability attribute is not helpful here since it stores the latest state of thread and it is a
+property of the trace not the event. This results usually to all threads being marked unavailable when reset takes
+place.
+
+There are two options on how to implement a bound counter in such a case. The first is to make thread availability a
+property of the event, hence, we should store all the threads' availability in each event. This option was rejected due
+to the overhead that would occur. The overhead would be caused by both the memory that would be required and by the fact
+that this vector should be constantly be copied throughout the DPOR execution. The other solution is to infer the
+availability by the counter itself which as it was mentioned must be maintained in each event. Since the available
+attribute of a thread will be reset afterwards we can still use this attribute to store the availability of the threads.
+During the reset the event vector is traversed from the end to the beginning until a branch is found. We assume that
+each thread is available. We can make the following observation based on the bound counter of each event.
+
+Given two consecutive events $a,b$ , if $a.bound\_count < b.bound\_count$ then $a$ was available.
+
+The pseudo code is given in Algorithm \ref{Should we increase the bound count?}.
+
+\begin{algorithm}
+    \caption{Should we increase the bound count?}
+    \label{Should we increase the bound count?}
+    \Let{$i =\text{the most recent branching point} $}
+    $bound\_count := prefix[i].bound\_count$  \;
+    \If{$i>0$}{
+        \If{$prefix[i].id == prefix[i-1].id$}{
+            $prefix[i].bound\_count = ++bound\_count$\;
+        }
+        \Else{
+            $prefix[i].bound\_count = bound\_count$ \;
+        }
+    }
+
+\end{algorithm}
+
+
+In order to be able to verify the correct calculation of the bound count, the debug print during the reset was modified appropriately.
+The bound counter should work like Listing \ref{Example of bound counter}.
+
+\Output{./code/bound_count.out}{Example of bound counter}
+
+Nidhugg expects only traces blocked due to sleep sets. Again the first step is to locate parts of the Nidhugg's code
+where bound block should take place. The best option for a bound block to occur is during the \verb|schedule()|
+function. Before any new scheduling we just need to determine whether that bound was exceeded or not because of a reset.
+Moreover in order for the trace builder to know whether the trace was blocked due to the bound the bound\_blocked flag
+was added. Finally modifications should be made in the DPORDriver so it can print correct messages about the reason why
+the trace was blocked.
+
+Running a random program will result the Listing \ref{Naive-BPOR output}.
+
+\Output{./code/vanilla_output.out}{Naive-BPOR output}
+
+We notice that Nidhugg gives the number of scheduling that were rejected. Nidhugg schedules threads by giving priority
+to the older ones. As a result, as soon as an old thread becomes available it will be scheduled immediately. This will
+cause an increase of the bound count since it will probably stop the execution of another thread and maybe if the bound
+leading to the increase of the bound count which would cause the to exploration to stop if the bound count was exceeded.
+In order to explore as many interleavings as possible the priority of the threads was modified. Specifically, the thread
+executed most recently has the highest priority. If that thread is unavailable then the priority remains as it used to
+be with the oldest thread being prioritized.
+
+\trace{w2rscheduling.pdf}{Execution without the scheduling optimization}
+
+In the Figure \ref{Execution without the scheduling optimization} an example of two of a program with two readers and a
+writer is demonstrated. In the second trace of the example we notice that when the read operation of $q$ takes place $p$
+wakes up since $r(x)$ conflicts with $w(x)$. Since $p$ is older than $q$, the execution of $q$ stops and $p$ is
+scheduled. Since $q$ was enabled when $p$ was scheduled the bound counter is increased. However, if $q$ was scheduled
+again instead of $p$ then the $q$ would be blocked after the return command and the scheduling of $p$ would not have
+increased the bound count. We can infer that, had the most recently running thread given the highest priority at least
+one more interleaving would have been explored and as a result more interleavings would have been explored.
+
+\section{Implementation of Nidhugg-BPOR}
+
+As it was made clear in previous sections for any algorithm to be implemented, the main modifications should take place
+in the see\_events and add\_branch procedures. The pseudo code for the see\_events procedure is shown in Algorithm
+\ref{seeevents routine for BPOR}.
+
+During see\_events procedure we add another branch at the beginning of the block if that is possible. In order to do
+that we have to check whether the added thread is available or not in that place. We use the available thread field for
+this purpose.
+
+\begin{algorithm}[H]
+    \caption{see\_events() for BPOR}
+    \label{seeevents routine for BPOR}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{see\_events($seen\_access$)}{
+        $branches := seen\_access - \{ a \in seen\_access \mid a$ happens before $last(E) or \exists a' \in seen\_access$ which happens after $a \}$ \;
+        $update\_clocks()$ \;
+        \ForEach{$b \in branches$}{
+            $add\_branch(b)$ \;
+            \If{$last(E).id \in enabled($ at the beggining of block $b)$}{
+                $add\_branch($ at the beginning of block $b)$ \;
+            }
+        }
+     }
+\end{algorithm}
+
+In case the \verb|add_branch()| invokes directly, the \verb|add_conservative_branch()| is called which works as the ``conservative''
+part of the \verb|see_events()|. The pseudo code for this procedure is shown in Algorithm \ref{try to add conservative branch}.
+The \verb|add_branch()| has already been described in Algorithm \ref{addbranch routine for persistent sets}.
+
+\begin{algorithm}[H]
+    \caption{try\_to\_add\_conservative\_branches()}
+    \label{try to add conservative branch}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{try\_to\_add\_conservative\_branches($b$)}{
+        \If{$last(E).id \in enabled($ at the beggining of block $b)$}{
+            $add\_branch($ at the beginning of block $b)$ \;
+        }
+    }
+\end{algorithm}
+
+During \verb|add_branch()| procedure we add branches at the appropriate places using the algorithm for the persistent
+sets suggested in the previous section. As mentioned before two different types of branches are used. However, the
+Nidhugg's infrastructure takes into account only the non-conservative ones when it comes to searching for threads in set
+of threads such as sleep sets. As a result, at some points of the code we have to look for both the conservative and the
+non conservative branches in the set. Another important problem arises when both conservative and non conservative
+branches are added at the same point. In that case the conservative branch prevails. Looking at the writer-2readers
+example if we have chosen the non-conservative branch then the trace that begins with the r2 would have been blocked by
+the sleep sets.
+
+\section{Implementation of Source-BPOR}
+
+The implementation is again based on modifications on the procedure \verb|add_branch()| since every change in the
+\verb|see_events()| procedure is still necessary for this algorithm. We can infer from the algorithm that will choose
+the same candidate with the Source-DPOR when we are dealing with a non-conservative branch and the same candidate as in
+BPOR in case the branch is conservative. In order to differentiate for the two cases we add a second parameter at the
+routine so we can be aware of the nature of the branch (conservative or non-conservative). The pseudo code for
+\verb|add_branch()| is shown in Algorithm \ref{addbranch routine for Source-BPOR}.
+
+\begin{algorithm}[H]
+    \caption{add\_branch() routine for Source-BPOR}
+    \label{addbranch routine for Source-BPOR}
+    \Fn{add\_branch($b,is\_conservative$)}{
+        $candidates = \emptyset$ \;
+        $lc = null$ \;
+        $lpc = null$ \;
+        $E'$ := $E$ starting from $next_{E}(b)$ \; 
+        \ForEach{$e \in dom(E')$}{
+            \If{$b \rightarrow e$ or $\exists c \in candidates \mid c \rightarrow e $}{
+                continue \;
+            }
+
+            \If{$e \rightarrow last(E)$}{
+                $lpc := e.pid$\;
+            }
+
+            $lc := e.pid$\;
+
+            \If{$e.pid \in backtrack(b)$ or $e.pid \in sleep\_set(b)$}{
+                \If{not is\_conservative or $ lc \rightarrow last(E)$}{
+                    return \;
+                }
+            }
+        }
+        \If{$lpc$ and $is\_conservative$}{
+            $backtrack(b) := backtrack(b) \cup lpc $
+        }
+        \Else{$backtrack(b) := backtrack(b) \cup lc $}
+    }
+\end{algorithm}

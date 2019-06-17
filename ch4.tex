@@ -1,0 +1,122 @@
+\chapter{Concuerror Modifications}
+\label{conc_mods}
+
+Scheduling is significantly the most time consuming component of Concuerror, since DPOR algorithms suffer from combinatorial explosion. 
+This means that the number of traces that are to be planned and explored by the scheduler is highly exponential. Therefore, parallelizing Concuerror 
+entails parallelizing its scheduler. In other words, we should have multiple schedulers so as to be able to explore 
+multiple interleavings in parallel. In order to accomplish this, some modification are to be made.
+Here we summarize those necessary modifications.
+
+We should briefly describe how the scheduler works. The scheduler starts by exploring completely an arbitrary interleaving (with a maximal sequence $E$), 
+through the function $explore/1$.
+It continues by calling $plan\_more\_interleaving/1$, in order to detect the races of the explored interleaving and to plan the exploration of 
+future interleavings, according to the logic of the used algorithm. Lets assume that we must now explore a sequence $E'.p$, where $E'$ is a prefix
+of $E$ and $p$ a process. The next invocation of $'explore/1'$ will reset all actor processes, to "force" them back to their initial state, and
+then it will replay the prefix $E'$ to recreate the global state at $E'$, without completely recreating the events in the prefix. After the replay is done,
+the processes in the backtrack (or in the wakeup tree) will be scheduled and finally the remaining events will be scheduled arbitrarily so as no
+more processes are enabled. The scheduler will then try and plan more interleavings. We are finished when there are no more interleavings left to explore
+(or until an error is found if the option $keep\_going$ is set to $false$).
+\\
+
+\noindent Let us, also, describe the main datatypes used in the scheduler:
+\begin{itemize} 
+\item $event()$: corresponds to the event $e$ of a process $p$, according to our notation. It contains the
+Erlang $Pid$ (process identifier) of the actor process $p$, as well as information about the code (e.g. the BIF) of this specific event.
+\item $\#event\_tree$: refers to either the backtrack or the wakeup tree at a specific point.
+\item $\#trace\_state$: holds information about an execution step of an execution sequence $E$, 
+such as the backtrack (or the wakeup tree)and the sleep set at this point.
+\item $\#scheduler\_state$: a record that contains information regarding the state of the scheduler
+such as the algorithm used and most importantly the current trace, which is a list of $\#trace\_state$. This list
+roughly corresponds to the execution sequence $E$ a,s defined in our framework.
+\end{itemize}
+
+\section{Dealing with Processes}
+
+It is clear that in order to concurrently explore different interleavings of the processes of a program, each scheduler
+must have its own instance for every process in the tested program. This technically means that we should have different Erlang processes
+that correspond to the same process of the tested program. Erlang processes are characterized by their Pid, which is globally unique.
+The Pid of a process is also used in Concuerror, to identify a process and therefore, characterize a trace. When transferring traces
+between schedulers any Pid found anywhere in the trace should change to reflect the Pids of the different schedulers.  
+
+This means that a mapping should be created between the Pids of the different schedulers. This mapping can be established through
+the $symbolic$ $names$ that concuerror assigns to the tested process with the following logic:
+\\
+
+$ Symbol(p) =
+\left\{
+    \begin{array}{ll}
+        P               &   \mbox{if $p$ is the initial process} \\
+        Symbol(q).i     &   \mbox{if $p$ is the  $i_{th}$ child of $q$}
+    \end{array}
+\right.$
+\\
+
+However, creating such mappings is not enough guarantee that a trace can be transferred between different schedulers. It is important
+that the same execution sequence leads to the same global state regardless of the scheduler that explores it. Specifically, Erlang
+gives the ability to order Pids. For instance, the ordering of two Pids could change the outcome of a branch in a program. This could 
+result in the same trace leading to different global states on different schedulers. What is more, through the use
+of the BIF $pid\_to\_list/1$, a Pid could exist in the form of a string in some trace and as a result we would have to try and parse
+every string in a trace to check whether is refers to a Pid.
+
+We solve this by having each scheduler run on its own Erlang node. It is possible for two processes, located on different nodes,
+to have the same local Pid. To implement this we have encountered two main issues:
+\begin{itemize}
+    \item Erlang does not give the option to request specific pids. Nevertheless, The Erlang VM of a node assigns Pids in a sequential ordering. For example,
+    after spawning a process with $<0.110.0>$ as its local Pid, then next process spawned in that node would have a Pid of $<0.111.0>$. We can use this
+    to preemptively spawn processes on different nodes with the same Pid, by creating a $process\_spawner$.
+    We require that nothing besides our schedulers runs on our nodes
+    and therefore, there will be no interference with sequence of the spawned Pids on the node. Firstly, we must reach a consensus between the different
+    schedulers as to the initial local Pid. This consensus can be achieved by having each scheduler send to the $process\_spawner$ the first available
+    local Pid in their node (we can get this by spawning a dummy process). The $process\_spawner$ chooses the maximum local Pid and sends it to all the schedulers.
+    The schedulers can then spawn a process with this maximum Pid by spawning and killing dummy processes until they reach the requested Pid. Then they can
+    spawn a specified (by the user) amount or processes preemptively. The $i_{th}$ processes spawned this way on different nodes, will all have the same local Pid.
+    Thanks to that, we can have different processes on different nodes with the same local Pid that corresponds to the same symbolic process. 
+    \item Simply sending a trace between schedulers on different nodes will result in the Erlang VM changing every pid on the trace to their global values.
+    Those values, however, are unique. We can avoid this by transforming every pid on that trace to a string (by using the $pid\_to\_list/1$ BIF) before
+    sending the trace. When we send the transformed trace the VM will not interfere with the transformed pids. The local pids can then be recovered from
+    the receiving scheduler by using the $list\_to\_pid/1$ BIF. Those local pids will refer to processes with the same symbolic name on different nodes. 
+\end{itemize}
+
+\section{Execution Sequence Replay}
+
+Even after fixing the Pid issue, replaying traces on different schedulers is not going to work. There are two basic reasons behind this. 
+
+Firstly, during the execution of certain events (such as ets tables related events or spawning) Concuerror uses various ets 
+tables to keep track of specific information. When Concuerror explores a trace on replay mode, it makes sure that such
+ information exists and drives the tested processes to the appropriate state. Therefore, when concuerror explores a
+ trace it creates some side-effects on the global state of Concuerror. Those side-effects will not exist on
+ a different Erlang node, since ets tables are not shared between nodes. 
+
+\begin{code}{envexamp}{ Environment variables}
+    Pid = spawn(fun() -> 
+                    receive
+                        exit ->
+                            ok 
+                    end
+                end),
+    Lambda =
+        fun() ->
+             Pid ! exit
+        end.
+\end{code}
+
+Secondly, user defined lambda functions can have some environment variables. The value of those variables is
+immutable once the lambda function is defined. In example \ref{envexamp}, if a trace contains an event
+that applies this function, this event is not able to be properly replayed by a different scheduler other than the one that
+created it, since the Pid environment variable cannot be changed. The only reasonable way to solve this is to
+change how replaying works.
+
+Specifically, we need to have two different replay modes: $pseudo$ and $actual$. Pseudo replay is used when
+replaying traces that were created by the same scheduler and works exactly like the replay of the sequential
+Concuerror. Actual replay recreates the events and the side-effects of a trace and is used for
+replaying interleavings received from other schedulers. On built-in events, we achieve this by setting an
+$actual\_replay$ flag to $true$ and by making changes on how the $concuerror\_callback$ module handles those replays.
+On other events, we set their $event\_info$ value to $undefined$ forcing those events to be recreated.
+
+\section{Logger Modifications}
+
+The Logger is necessary for reporting erroneous interleavings. If we were to keep the logger working as is,
+the reports from the different schedulers would interleave with each other leading unreadable output. There are two ways
+solve this.
+
+We can implement a $logger\_wrapper$ ... unfinished

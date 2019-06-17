@@ -1,0 +1,12 @@
+*.aux
+*.blg
+*.loa
+*.lol
+*.fdb_latexmk
+*.log
+*.toc
+*.lof
+*.fls
+*.lot
+Misc/
+.vscode/

@@ -1,0 +1,1278 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[9pt]{beamer}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage[cm-default]{fontspec}
+\usepackage{unicode-math}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage{float}
+\usepackage{color}
+%\usepackage[table,xcdraw]{xcolor}
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{listings}
+\usepackage{algorithm2e}
+
+
+\usepackage{graphicx}
+
+
+
+\usepackage{fontspec}
+\usepackage{xunicode}
+\usepackage{xltxtra}
+%\setromanfont{Comic Sans MS}
+\setromanfont{CMU Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{FreeMono}
+%\usepackage[english,greek{babel}
+%\usepackage[iso-8859-7]{inputenc}
+%\setmainfont{Minion Pro} % substitute with any font that exists on your system
+%\setsansfont{Myriad Pro} % substitute with any font that exists on your system
+%\setmonofont{Consolas} % substitute with any font that exists on your system
+
+\setbeamertemplate{theorems}[numbered]
+
+\newcommand{\img}[2]{
+    \begin{center}
+\includegraphics[scale=#1]{#2}
+\end{center}
+}
+
+
+\graphicspath{ {img/} }
+\newcommand{\trace}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\tracelong}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.4]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\graph}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\mediumGraph}[2]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{#1}
+    \caption{#2}
+    \label{#2}
+    \end{figure}
+    }
+
+\lstset{basicstyle=\ttfamily,columns=fullflexible}
+
+\newcommand{\Code}[2]{
+  \begin{minipage}{\linewidth}
+  \lstinputlisting[basicstyle=\ttfamily\scriptsize,caption=#2,captionpos=b]{#1}
+  \label{#2}
+  \end{minipage}
+ }
+
+\newcommand{\Output}[2]{
+  %%\BVerbatimInput[fontsize=\tiny]{#1}
+  \begin{minipage}{0.85\textwidth}
+  \lstinputlisting[label={#2},numbers=none,frame=none,caption=#2]{#1}
+  \end{minipage}
+  %%\caption{#2}
+ }
+
+\newcommand{\Side}[5]{
+  %\begin{figure}
+    \begin{minipage}{0.5\textwidth}
+      \lstinputlisting[frame=none, numbers=none,caption={[#2]}]{#1}
+    \end{minipage}
+    %%\begin{minipage}{0.1\textwidth}
+    %%  \includegraphics[scale=0.1]{arrow.pdf}
+    %%\end{minipage}
+    \begin{minipage}{0.5\textwidth}
+      %%\VerbatimInput{#2}
+      \lstinputlisting[frame=none, numbers=none,caption={[#4]}]{#3}
+    \end{minipage}
+    \captionof{figure}{#5}
+    \label{#5}
+    
+     % \caption{#5}
+     % \label{#5}
+  %\end{figure}
+} 
+
+\newcommand{\bigtabular}[2]{
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+}
+
+\newcommand{\landscapetabular}[2]{
+\begin{landscape}
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+\end{landscape}
+}
+
+\newcommand{\smalltabular}[2]{
+  \begin{table} 
+    \resizebox{0.5\textwidth}{!}{\begin{minipage}{\textwidth}
+     \input{#1}
+     \caption{#2}
+     \label{#2}
+    \end{minipage}}
+  \end{table} 
+}
+
+\newtheorem{thm}{Θεώρημα}[section]
+\newtheorem{lem}[thm]{Λήμμα}
+\newtheorem{por}[thm]{Πόρισμα}
+\newtheorem{defn}[thm]{Ορισμός}
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Short title]{Bounding Techniques for Dynamic Partial Order Reduction} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Γιάννης Σαχίνογλου} % Your name
+\institute[NTUA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+ΣΗΜΜΥ - ΕΜΠ \\ % Your institution for the title page
+\medskip
+\textit{03112089} % Your email address
+}
+\date{} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Περίληψη} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{Εισαγωγικές έννοιες} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+%------------------------------------------------
+
+%\subsection{} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
+
+\begin{frame}
+\frametitle{Θέμα εργασίας}
+
+\end{frame}
+
+\section{Background Knowledge}
+
+\subsection{Computational Model}
+\begin{frame}{Concurrent Programming}
+
+\emph{Concurrent Computing} is a form of computing in which several computations are executed during
+overlapping time periods concurrently, instead of sequentially (one completing before the next starts).
+
+Potential problems include:
+\begin{itemize}
+\item Race Conditions
+\item Deadlocks
+\item Livelocks
+\item Resource Starvation
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Concurrency Errors}
+A simple example:
+
+\Code{../code/zero.c}{Example of non-concurrency error}
+
+\Code{../code/zeroconc.c}{Example of concurrency error}
+
+\end{frame}
+
+\subsection{Model Checking}
+\begin{frame}{Testing, Model Checking, and Verification}
+\begin{itemize}
+\item Testing: For some given inputs check whether the output is correct.
+\item Verification: Prove formally that the output is correct.
+\item Model Checking: Explore all the possible states the system can be.
+
+\end{itemize}
+
+\trace{../img/testmodver.png}{Comparing Testing, Model Checking and Verification}
+    
+\end{frame}
+
+\begin{frame}{The Idea of Interleaving}
+
+\begin{itemize}
+    \item We need to model our state space!
+    \item An Interleaving represents a scheduling of the concurrent program.
+    \item In order to find an error of a concurrent program, one must examine every possible interleaving BUT leads to state explosion.
+\end{itemize}
+    
+
+\end{frame}
+
+\begin{frame} {Stateless Model Checking and Partial Order Reduction}
+ 
+    
+Partial order reduction aims to reduce the number of interleavings explored by eliminating the exploration of
+equivalent interleavings.
+
+For example:
+\trace{../img/interleavings}{Examples of Interleavings}
+
+\end{frame}
+
+\begin{frame}{Stateless Model Checking and Partial Order Reduction}
+
+\begin{itemize}
+\item Static Partial Order Reduction: Dependencies are tracked before execution.
+
+\item Dynamic Partial Order Reduction: Dependencies are observed during runtime.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Bounding Techniques for DPOR}
+
+\begin{itemize}
+\item For larger programs DPOR often runs longer than developers are willing to wait. 
+\item Bounded techniques, alleviate state-space explosion by pruning the executions
+that exceed a bound. 
+\item Preemption Bounded and Delay Bounded exploration.
+\item Many of the concurrency bugs can be tracked even when the bound limit is set to be small.
+\end{itemize}
+    
+\end{frame}
+
+\begin{frame}
+
+We need to introduce some basic ideas and notation!
+    
+\end{frame}
+
+\begin{frame}{Vector Clocks}
+
+\begin{enumerate}
+    \item Each process experiencing an internal event, it increments its own logical clock in the vector by one.
+    \item Each time a process receives a message or performs an action on a shared variable, it increments its own
+    logical clock in the vector by one and updates each element in its vector by taking the maximum of the value in its
+    own vector clock and the value in the vector in the received message or the maximum value of all processes that
+    share the same shared variable.
+\end{enumerate}
+    
+\end{frame}
+    
+\begin{frame}{Useful Notation}
+    
+\end{frame}
+
+\begin{frame}{Event Dependencies}
+
+    \begin{definition}[happens-before assignment]
+    A happens-before assignment, which assigns a
+    unique happens-before relation $\rightarrow E$ to any execution sequence
+    $E$, is valid if it satisfies the following properties for all execution
+    sequences $E$.
+    \begin{enumerate}
+        \item $\rightarrow_{E}$ is a partial order on $dom(E)$, which is included in $<_E$. In other words every
+        scheduling is part of the set of all possible partial order of the program.
+        \item The execution steps of each process are totally ordered, i.e. 
+        $\langle p,i \rangle \rightarrow_E \langle p,i+1 \rangle$ whenever $\langle p, i+1 \rangle \in dom(E)$.
+        \item If $E'$ is a prefix of $E$ then $\rightarrow_E$ and $\rightarrow_{E'}$ are the same on $dom(E')$.
+    \end{enumerate}
+\end{definition}
+\end{frame}
+
+\begin{frame}{Event Dependencies}
+
+    \begin{enumerate}
+        \setcounter{enumi}{3}
+        \item Any linearization $E'$ of $\rightarrow_E$ on $dom(E)$ is an execution sequence which has exactly the same
+“happens-before” relation $\rightarrow_{E'}$ as $\rightarrow_E$. This means that the relation $\rightarrow_E$ induces a
+set of equivalent execution sequences, all with the same “happens-before” relation. We use $E \simeq E'$ to denote that
+$E$ and $E'$ are linearizations of the same “happens-before” relation, and $[E] \simeq$ to denote the equivalence class
+of E.
+    \item If $E \simeq E'$ then $s_{[E]} = s_{[E']}$ (i.e. two equivalent traces will lead to the same state).
+    \item For any sequences $E, E'$ and $w$, such that $E.w$ is an execution
+sequence, we have $E \simeq E'$  if and only if $E.w \simeq' E'.w$.
+    \end{enumerate}
+    
+\end{frame}
+
+%------------------------------------------------
+\subsection{Dynamic Partial Order Reduction}
+
+\begin{frame}
+\begin{definition}[Sufficient Sets]
+A set of transitions is sufficient in a state $s$ if any relevant
+state reachable via an enabled transition from $s$ is also reachable from $s$ via at least one of the transitions in the sufficient
+set. A search can thus explore only the transitions in the
+sufficient set from $s$ because all relevant states still remain
+reachable. The set containing all enabled threads is trivially
+sufficient in $s$, but smaller sufficient sets enable more state
+space reduction.
+\end{definition}
+
+    
+\end{frame}
+
+\begin{frame}{General form of DPOR}
+    
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{figure}
+\centering
+\scalebox{1.}{
+\begin{algorithm}[H]
+    \caption{General form of DPOR}
+    \label{GeneralDPOR}
+    Explore($\emptyset$)\;
+    \Fn{Explore($E$)}{
+     \Let{$T = Sufficient\_set(final(E)$)}
+     \For{all $t \in T$}{
+        Explore($E.t$) \;
+    }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+\begin{frame}{Sufficient Sets: Persistent Sets}
+    
+\begin{definition}[Persistent Sets]
+Let $s$ be a state, and let $W \subseteq E(s)$ be a set
+of execution sequences from $s$. A set $T$ of transitions is a persistent set for $W$
+after $s$ if for each prefix $w$ of some sequence in $W$, which contains no occurrence
+of a transition in $T$,  we have $E \vdash t \diamondsuit w$ for each $t \in T$.
+\end{definition}
+\end{frame}
+
+\begin{frame}{Sufficient Sets: Persistent Sets}
+A simple example:
+    
+\trace{../img/persistent.pdf}{Construction of persistent sets}
+    
+\end{frame}
+
+\begin{frame}{Sufficient Sets: Source Sets}
+\begin{definition}[$dom(E)$]
+    The set of events-transitions happening during the scheduling of $E$.
+\end{definition}
+
+\begin{definition}[Initials after an execution sequence $E.w$, $I_{[E]}(w)$]
+For an execution sequence $E.w$, let $I_{[E]}(w)$ denote the set of
+processes that perform events $e$ in $dom_{[E]}(w)$ that have no
+“happens-before” predecessors in $dom_{[E]}(w)$. More formally,
+$p \in I_{[E]}(w)$ if $p \in w$ and there is no other event $e \in dom_{[E]}(w)$ with
+$e \rightarrow_{E.w} next_{[E]}(p)$.
+\end{definition}
+
+By relaxing the definition of Initials we can get the definition of Weak Initials, $WI$.
+
+\begin{definition}[Weak Initials after an execution sequence $E.w$, $WI_{[E]}(w)$]
+For an execution sequence $E.w$, let $WI_{[E]}(w)$ denote the union of $I_{[E]}(w)$ and the set of
+processes that perform events $p$ such that $p \in enabled(s_{[E]}) $.
+\end{definition}
+    
+\end{frame}
+
+\begin{frame}{Sufficient Sets: Source Sets}
+    
+    
+\end{frame}
+
+\begin{frame}{Sufficient Sets: Source Sets}
+
+\begin{definition}[Source Sets]
+Let $E$ be an execution sequence,
+and let $W$ be a set of sequences, such that $E.w$ is an execution
+sequence for each $w \in W$. A set $T$ of processes is a source set for
+$W$ after $E$ if for each $w \in W$ we have $WI_{[E]}(w) \cap P  = \emptyset$.
+\end{definition}
+
+\end{frame}
+
+\begin{frame}{Souce Sets}
+An example:
+\trace{../img/source.pdf}{Construction of Source Sets}
+\end{frame}
+
+\begin{frame}{Further Optimizations: Sleep Sets}
+The idea behind Sleep Set Optimization:
+
+\begin{itemize}
+\item Assume that the search explores transition $t$ from state $s$, backtracks $t$, then explores $t_0$ from $s$ instead.
+Unless the search explores a transition that is dependent with $t$, no states are reachable via $t_0$ that were not
+already reachable via $t$ from s. Thus, $t$ ``sleeps'' unless a dependent transition is explored.
+    
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Sleep Sets}
+Sleeps sets in action (Using Persistent Sets):
+\trace{../img/sleep.pdf}{Example of Sleep Set Optimization}
+\end{frame}
+
+\subsection{Bounded Dynamic Partial Order Reduction}
+
+\begin{frame}{Bounded Dynamic Partial Order Reduction General Form}
+
+Given a bound evaluation function $B_v$ and a bound $c$:
+
+\begin{figure}
+\scalebox{1.}{
+\SetKwProg{Fn}{Function}{}{}
+\begin{algorithm}[H]
+    \caption{Bounded-DPOR}
+    \KwResult{Explore the whole statespace}
+    Explore($\emptyset$)\;
+    \Fn{Explore($E$)}{
+
+     $T = Sufficient\_set$($final(E)$)
+
+     \For{all $t \in T$}{
+         \If{$B_v(E.t) \leq c$}{
+            Explore($E.t$)
+         }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+    
+\end{frame}
+
+\begin{frame}{Preemption Bounded Search}
+
+\begin{definition}[Preemption bound]
+$P_b(\emptyset) = 0$ \\
+$P_b(E.t) = 
+ \begin{cases} 
+    P_b(E) + 1 & \text{ if } t.tid = last(E).tid \text{ and } last(E).tid \in enabled(final(E)) \\
+    P_b(E) & \text{ otherwise }
+ \end{cases}
+$
+\end{definition}
+    
+\end{frame}
+
+\begin{frame}
+
+\begin{definition}[$ext(s,t)$]
+    Given a state $s = final(E)$ and a transition $t \in enabled(s)$,
+    $ext(s,t)$ returns the unique sequence of transitions $\beta$ from $s$
+    such that
+    \begin{enumerate}
+        \item $\forall i \in dom(\beta): \beta_i.tid = t.tid$
+        \item $t.tid \notin enabled(final(E.\beta))$
+    \end{enumerate}
+\end{definition}
+    
+\end{frame}
+
+\begin{frame}{Preemption Bounded Persistent Sets}
+
+\begin{definition}[Preemption Bounded Persistent Set]
+
+A set $T \subseteq \mathcal{T}$ of transitions enabled in a state $s=final(E)$
+is preemption-bound persistent in $s$ iff for all nonempty
+sequences $a$ of transitions from $s$ in $A_G(P_b,c)$ such that
+$\forall i \in dom(a), a_i \notin T$ for all $t \in T$ ,
+
+\begin{enumerate}
+\item $Pb(E.t) \leq Pb(E.a_1)$
+\item if $Pb(E.t)<Pb(E.a_{1}) ,$ then $t \leftrightarrow last(a)$ and $t \leftrightarrow  next(final(E.a), last(a).tid)$
+\item if $Pb(E.t)=Pb(E.a_{1}),$ then $ext(s,t) \leftrightarrow last(a)$ and $ext(s,t) \leftrightarrow next(final(E.a), last(a).tid)$
+\end{enumerate}
+
+\end{definition}
+    
+\end{frame}
+
+\section{Dynamic Partial Order Reduction}
+
+\begin{frame}{Source-DPOR}
+
+\begin{figure}
+    
+\scalebox{0.7}{
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Source-DPOR Algorithm}
+    \label{Source}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$ \;
+                add $p$ to $Sleep$ \;
+
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{DPOR using Clock Vectors (Classic-DPOR)}
+
+\begin{figure}
+\scalebox{0.7}{
+\begin{algorithm}[H]
+    \caption{DPOR using Clock Vectors (Classic-DPOR)}
+    \label{DPORV}
+    \SetKwInOut{Input}{input}
+    \SetKwInput{Initialization}{Explore($\emptyset, \lambda x. \bot$)}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    \Fn{Explore($E$,$C$)}{
+        \Let{$s := last(E)$}
+        \For{all process $p$}{
+            \If{$\exists i = max(\{ i \in dom(E) \mid E_i$ is dependent and may be co-enabled with $next(s,p)$ and $i \not \leq  C(p)(proc(E_i)) \} $}{
+                \uIf{$p \in enabled(pre(E,i)))$}{
+                    add $p$ to $backtrack(pre(E,i))$ \;
+                }
+                \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+            }
+        }
+        \If{$\exists p \in enabled(s)$}{
+            $backtrack(s) := {p}$ \;
+            \Let{$done = \emptyset$}
+            \While{$\exists p \in (backtrack(s) \backslash done)$}{
+               add $p$ to $done$ \;
+               \Let{$t = next(s,p)$} 
+                \Let{$E' = E.t$} 
+                \Let{$cu = max \{ C(i) \mid i \in 1.. | S |$ and $E_i$ dependent with $t \}$} 
+                \Let{$cu2 = cu [ p := | E' | ] $} 
+               \Let{$C' = C [p:= cu2, |E'| := cu2 ]$} 
+                $Explore(E',C')$ \;
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Source-DPOR vs Classic-DPOR}
+Similarities:
+\begin{enumerate}
+  \item Consist of the same phases, i.e., race detection and exploration
+  \item Both rely on Vector Clocks.
+\end{enumerate}
+
+Differences:
+
+\begin{enumerate}
+  \item Classic-DPOR ``eager'' i.e., adds more dependencies before scheduling.
+  \item Source-DPOR ``lazy'' i.e., adds branches after scheduling and thus avoids redundant additions.
+\end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Nidhugg-DPOR}
+    
+\begin{figure}
+    
+\scalebox{0.7}{
+\begin{algorithm}[H]
+    \caption{Nidhugg-DPOR}
+    \label{NDPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E'}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI \text{ to } backtrack(E') $ \;
+                        }
+                        \Else{add some $q' I_{E'}(u) \text{ to } backtrack(E')$}
+                    }
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $ } 
+                $Explore(E.p, Sleep)$ \;
+                add $p$ to $Sleep$ \;
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Correctness of Nidhugg-DPOR}
+
+
+Case 1: At least one process contains a write command. We know that the two processes will be inverted at some
+point. Since Nidhugg-DPOR ignores weak initials it will branch both processes. 
+In Source-DPOR only one of the two processes should be branched since they share the same initials. 
+However, in Nidhugg-DPOR this is not true since the $CI$ set does not contain steps from the other process.
+
+\trace{../img/nidhuggpersistent1.pdf}{Construction of persistent sets in Nidhugg when there is a write process}
+
+\end{frame}
+
+\begin{frame}{Correctness of Nidhugg-DPOR}
+    
+Case 2: Both processes are read operations. Since we do not calculate $I$ but $CI$ the first read operation will not be
+considered as it does not happen before the second read operation and as result both processes will be added to
+$backtrack$.  We notice that by calculating the $CI$ set when the race between $p$ and $r$ is detected $q$ process will
+be ignored and, thus, $r$ will be added as a branch.
+
+\trace{../img/nidhuggpersistent.pdf}{Construction of persistent sets in Nidhugg when both are read processes}
+    
+\end{frame}
+
+
+\section{Bounded Dynamic Partial Order Reduction}
+\begin{frame}{Naive-BPOR}
+
+\begin{figure}
+
+\scalebox{.7}{
+\begin{algorithm}[H]
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    \caption{Naive-BPOR}
+    \label{Vanilla}
+    \SetKwInOut{Input}{input}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$ such that $B_v(E.p) \leq b)$ }{
+            $backtrack(E) :={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep$ and $B_v(E.p) \leq b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p) $}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) to backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep, b)$ \;
+                add $p$ to $Sleep$ \;
+
+            }
+        }
+    }
+\end{algorithm}
+    }
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Example execution of Naive-BPOR}
+    
+A Naive-BPOR execution example and the problem with it.
+
+\trace{../img/w2rvbound.pdf}{Naive-BPOR for bound=$0$}
+
+\end{frame}
+
+
+\begin{frame}{Classic-BPOR}
+    
+\begin{figure}
+\scalebox{0.4}{
+\begin{algorithm}[H]
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    \caption{BPOR}
+    \label{BPOR}
+    \SetKwInput{Initialization}{Explore($ \emptyset $)}
+    \Fn{Explore($E$)}{
+        \Let{$s := last(E)$}
+        \For{all process $p$}{
+            \For{all process $q \neq p$}{
+            \If{$\exists i = max(\{ i \in dom(E) \mid E_i$ is dependent and may be co-enabled with $next(s,p)$ and $ E_i.tid = q \} $}{
+                \uIf{$p \in enabled(pre(E,i)))$}{
+                    add $p$ to $backtrack(pre(E,i))$ \;
+                }
+                \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+                \uIf{$j = max(\{ j \in dom(E) \mid j = 0 $ or $ S_{j-1}.tid \neq S_j.tid $ and $ j<i \})$}{
+                    \uIf{$p \in enabled(pre(E,i)))$}{
+                        add $p$ to $backtrack(pre(E,i))$ \;
+                    }
+                    \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+                }
+            }
+            }
+        }
+        \If{$p \in enabled(s)$}{
+            add $p$ to $backtrack(s)$ \;
+        }
+        \Else{
+            add any $u \in enabled(s)$ to $backtrack(s)$ \;
+        }
+        \Let{$visited = \emptyset $}
+        \While{$ \exists u \in (enabled(s) \cap backtrack(s) \backslash visited) $}{
+            add $u$ to $visited$ \;
+            \uIf{$(B_v(S.next(s, u)) \leq c)$}{
+                Explore($S.next(s, u)$) \;
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Nidhugg-BPOR}
+
+\begin{figure}
+    
+\scalebox{0.4}{
+\begin{algorithm}[H]
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    \caption{Nidhugg-BPOR}
+    \label{Nidhugg BPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in ((enabled(s_{[E]}) \backslash Sleep)$ and $B_v(E.p) <=b$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $ and $B_v(E.p) <=b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E'}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                             add some $q' \in I_{[E']}(u)$ to $backtrack(E') $ \;}
+                        }
+                    \Let{$E''= pre\_block(e,E)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E''}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                            add some $c(q') \in I_{[E'']}(u)$ to $backtrack(E'') $ \;
+                        }
+                    } 
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \}$ } 
+                $Explore(E.p, Sleep)$ \;
+                \If{$p$ is not conservative}{
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+    
+\end{frame}
+
+
+\begin{frame}{The main question}
+Can we use source sets instead of persistent sets in order implement BPOR?
+\end{frame}
+
+\begin{frame}{First approach}
+We should use Source Sets for both conservative and non-conservative branches.
+
+\trace{../img/w2rsourceconservative.pdf}{Following source sets for conservative branches}
+    
+\end{frame}
+
+\begin{frame}{A Correct Approach}
+    
+We should use Source Sets for non-conservative branches and persistent sets for conservative branches.
+\end{frame}
+
+\begin{frame}{Source-BPOR}
+
+\begin{figure}
+\scalebox{0.4}{
+
+\begin{algorithm}[H]
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+    \caption{Source-BPOR}
+    \label{SBPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in ((enabled(s_{[E]}) \backslash Sleep)$ and $B_v(E.p) <=b$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $ and $B_v(E.p) <=b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E') $ \;
+                    }
+                    \Let{$E''= pre\_block(e,E)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E''}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                            add some $c(q') \in I_{[E'']}(u)$ to $backtrack(E'') $ \;
+                        }
+                    } 
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \}$ } 
+                $Explore(E.p, Sleep)$ \;
+                \If{$p$ is not conservative}{
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{Nidhugg-BPOR vs Source-BPOR}
+Similarities:
+\begin{itemize}
+\item Same structure. 
+\end{itemize}
+
+Differences:
+\begin{itemize}
+    \item Source-BPOR relies on Source Sets for the addition of non-conservative branches while Nidhugg-BPOR relies on persistent sets.
+\end{itemize}
+
+    
+\end{frame}
+
+\subsection{Challenges from the Approach}
+
+\begin{frame}{Conservative Branches}
+The usage of conservative branches leads to explosion of the state space:
+    
+\trace{../img/w3rbpor.pdf}{writer-3-readers explosion}
+
+\end{frame}
+
+
+\begin{frame}
+Sleep Sets are no longer that useful:
+    
+\trace{../img/sleepsetproblem.pdf}{Sleep set contradiction}
+
+\end{frame}
+
+
+\begin{frame}{Concluding Remarks}
+    
+The Preformance - Soundness Tradeoff
+
+\end{frame}
+
+\section{Implementation of Algorithms in Nidhugg}
+
+\begin{frame}{The Nidhugg Flow Chart}
+    
+\mediumGraph{../img/flowchartv2.pdf}{Nidhugg's Flow Chart}
+
+\end{frame}
+
+\begin{frame}
+The implementation mainly is focused, as expected,  on see\_events() and add\_branches()
+\end{frame}
+
+\section{Evaluation}
+
+\begin{frame}{Nidhugg-DPOR Evaluation}
+Evaluation of Nidhugg-DPOR on Synthetic Tests
+\graph{../img/wNr.png}{writer-N-readers}
+
+\smalltabular{../tables/synthetic_unbounded.tex}{Source-DPOR vs Nidhugg-DPOR for Synthetic tests}
+    
+\end{frame}
+
+
+\begin{frame}
+Evaluation of Nidhugg-BPOR on Synthetic Tests
+    
+\graph{../img/wNrB.png}{writer-N-readers bounded}
+\smalltabular{../tables/bounded.tex}{Traces for various bound limits}
+    
+\end{frame}
+
+\begin{frame}{Evalution of BPOR on RCU}
+Read-Copy-Update (RCU): Read-copy update (RCU) is a synchronization mechanism that was added to the Linux kernel in
+October of 2002. 
+    
+Let's start with a small bound...
+
+\bigtabular{../tables/naivevsbpor1.tex}{RCU results for bound $b=1$}
+
+\end{frame}
+
+
+\begin{frame}{Evalution of BPOR on RCU}
+
+Let's increase the bound...
+\bigtabular{../tables/naivevsbpor4.tex}{RCU results for bound $b=4$}
+
+\end{frame}
+
+\begin{frame}{Evalution of BPOR on RCU}
+What did we achieve?
+
+\bigtabular{../tables/dporvsbporpriority.tex}{Comparison between DPOR and BPOR with the bug}
+
+\end{frame}
+
+\begin{frame}{Equivalence of Source-BPOR with Nidhugg-BPOR}
+
+    Equivalence Case1:
+
+\trace{../img/equivalence_case1w.pdf}{Source-BPOR and Nidhugg-BPOR equivalence Case 1}
+    
+\end{frame}
+
+\begin{frame}{Equivalence of Source-BPOR with Nidhugg-BPOR}
+    Equivalence Case2:
+   \trace{../img/equivalence_case2.pdf}{Source-BPOR and Nidhugg-BPOR equivalence Case 2}
+    
+\end{frame}
+
+\section{Further Discussion}
+
+\begin{frame}{Motivation}
+Some preemption-switches can be easily avoided. For example:
+
+\trace{../img/motivation.pdf}{An example of avoidable preemption-switch}
+    
+\end{frame}
+
+\begin{frame}{Alternating the General Form of BPOR}
+What if calculate something more than the preemption-bound?
+    
+\begin{figure}
+    
+\scalebox{0.7}{
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+\begin{algorithm}[H]
+    \SetAlgoLined
+    \caption{General form of the BPOR without branch addition}
+    \label{NBBPOR}
+    \KwResult{Explore the whole state space within the bound}
+    Explore($\emptyset$)\;
+    \Fn{Explore($S$)}{
+        T = Sufficient\_set($final(S)$)
+     \For{all $t \in T$}{
+         \If{$min\{B_v([S.t])\} \leq c$}{
+            Explore($S.t$)
+         }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+    
+\end{frame}
+
+\begin{frame}{Construct a Block-Graph using Partial Order Reduction}
+
+\begin{figure}
+    
+\scalebox{0.7}{
+    \SetKwHangingKw{Let}{let}
+    \SetKwProg{Fn}{Function}{}{}
+\SetKw{Return}{return \;}
+\SetKw{Break}{break \;}
+\begin{algorithm}[H]
+    \caption{Adding a new block to the dependencies' graph}
+    \label{Adding a new block to the dependencies graph}
+    \Fn{AddBlock(block,graph)}{
+        \If{previous block of the same thread was not blocked}{
+            increase the weigh of the edges coming from the previous block to 1 \;
+        }
+
+        \For{each thread t}{
+            list:= preceding blocks t\;
+            \For{l in reversed(list)}{
+                \If{$l \leftrightarrow block$}{
+                    add edge from $block$ to $l$ with weight $0$ \;
+                    \If{$l$ is not last}{
+                        add edge from $l$ to $block$ with weight $1$ \;
+                    }
+                    \Else{
+                        add edge from $l$ to $block$ with weight $0$ \; 
+                    }
+                }
+                \If{$l \rightarrow block$}{
+                    \If{$l$ is not last}{
+                        add edge from $l$ to $block$ with weight $1$ \;
+                    }
+                    \Else{
+                        add edge from $l$ to block with weight $0$ \; 
+                    }
+                    \Break
+                }
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+    
+\end{frame}
+
+\begin{frame}{Applying the Graph construction}
+
+\trace{../img/compulsoryswitch.pdf}{Graph example}
+    
+\end{frame}
+
+\begin{frame}{Introducing Lazy-BPOR}
+
+\begin{figure}
+    
+\scalebox{0.7}{
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Lazy-BPOR}
+    \label{Lazy-BPOR}
+    \Let{$G =: \emptyset$}
+    Explore($\langle \rangle$,$\emptyset$,$G$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$G$,$b$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$ such that $B_v(E.p) \leq b$ }{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p) $}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) to backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                \If{$p$ creates a new block}{
+                    \Let{$block$ = $last\_block(E)$}
+                    \Let{$G'$ = add\_block($block$,$G$)}
+                }
+                \If{$min \{ Ham\_path(G') \text{ which compensate with all happens-before relations of } E \} \leq b $}{
+                    $Explore(E.p, Sleep,G',b)$ \;
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+    
+\end{frame}
+
+\begin{frame}{Evaluation of Lazy-BPOR}
+Evaluation on Synthetic Tests:
+
+\graph{../img/wNrLB.png}{writer-N-readers bounded by the first estimation algorithm}
+\smalltabular{../tables/lazy1_bounded.tex}{Traces for the first estimation algorithm for various bound limits}
+    
+\end{frame}
+
+\begin{frame}{Evaluation of Lazy-BPOR}
+
+Evaluation on RCU (DPOR vs Lazy-BPOR):
+\bigtabular{"tables/lazy_buged_comp.tex"}{Comparison between DPOR and Lazy-BPOR without the bug}
+
+\end{frame}
+
+\begin{frame}{Evaluation of Lazy-BPOR}
+
+Evaluation on RCU (Nidhugg-BPOR vs Lazy-BPOR):
+\bigtabular{"../tables/hline_pandas_lazy_preep.tex"}{Comparison between BPOR and Lazy-BPOR}
+
+\end{frame}
+
+\begin{frame}
+Conclusion:
+
+\begin{itemize}
+    \item It is possible to explore a preemption-bounded state space without the addition of conservative branches.
+    \item It provides an upper bound for the number of traces explored in BPOR no matter the bound. In fact the number
+    of traces explored by Lazy-BPOR at worst case equal to the number of traces explored by the unbounded DPOR. This is
+    true since no conservative branches are added.
+    \item The most important is that provides a reduction of the preemption-bounded search to a well known graph problem where many heuristics can
+    be applied in order to expedite the calculation of the minimum hamiltonian path.
+\end{itemize}
+    
+\end{frame}
+
+\iffalse
+\begin{frame}
+    \begin{lem}
+        aajldfkj        
+    \end{lem}
+
+    \begin{proof}
+        από το Μ αν αντικαταστήσουμε ένα redex με το contractum του και το 
+        N' προκύπτει από το Μ' αν αντικαταστήσουμε το αντίστοιχο redex με το 
+        contractum του. Το ζητούμενο προκύπτει από τη μεταβατικότητα της σχέσης.
+    \end{proof}    
+\end{frame}
+\fi
+
+\begin{frame}
+
+\end{frame}
+
+
+
+%----------------------------------------------------------------------------------------
+
+\end{document} 

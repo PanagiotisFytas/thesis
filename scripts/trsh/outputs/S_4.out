@@ -1,0 +1,190 @@
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp8hnz90wj/tmpe7ke1gf4.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp8hnz90wj/tmpdvd9i_fs.ll /tmp/tmp8hnz90wj/tmpe7ke1gf4.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp8hnz90wj/tmpdvd9i_fs.ll -I -std=gnu99 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp7ygfob8l/tmpujmtclzg.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp7ygfob8l/tmp_1l4uodb.ll /tmp/tmp7ygfob8l/tmpujmtclzg.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp7ygfob8l/tmp_1l4uodb.ll -I -std=gnu99 -DFORCE_FAILURE_1 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=4 --preemption-bounding=S --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpo2l34g4k/tmp9or6s37_.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpo2l34g4k/tmpwygvg8hf.ll /tmp/tmpo2l34g4k/tmp9or6s37_.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpo2l34g4k/tmpwygvg8hf.ll -I -std=gnu99 -DFORCE_FAILURE_3 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpf5oj8joa/tmp9zxn4x7i.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpf5oj8joa/tmp_fpkecqv.ll /tmp/tmpf5oj8joa/tmp9zxn4x7i.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpf5oj8joa/tmp_fpkecqv.ll -I -std=gnu99 -DFORCE_FAILURE_5 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpxbiv69yv/tmpkq870hhj.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpxbiv69yv/tmpairwtaq9.ll /tmp/tmpxbiv69yv/tmpkq870hhj.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpxbiv69yv/tmpairwtaq9.ll -I -std=gnu99 -DLIVENESS_CHECK_1 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpynrwdynz/tmp32v4fpew.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpynrwdynz/tmpz0pjbp5i.ll /tmp/tmpynrwdynz/tmp32v4fpew.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpynrwdynz/tmpz0pjbp5i.ll -I -std=gnu99 -DLIVENESS_CHECK_2 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.0 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpjvjspzgr/tmplw81iivl.ll -S -emit-llvm -g v3.0
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpjvjspzgr/tmpjcrefgwt.ll /tmp/tmpjvjspzgr/tmplw81iivl.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpjvjspzgr/tmpjcrefgwt.ll -I -std=gnu99 -DLIVENESS_CHECK_3 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus_v3.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp11vgd04h/tmp4l_uvmkf.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp11vgd04h/tmp8wvpf6mc.ll /tmp/tmp11vgd04h/tmp4l_uvmkf.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp11vgd04h/tmp8wvpf6mc.ll -I -std=gnu99 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpynzto850/tmp1l8zdaiy.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpynzto850/tmpbi9cwcnk.ll /tmp/tmpynzto850/tmp1l8zdaiy.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpynzto850/tmpbi9cwcnk.ll -I -std=gnu99 -DFORCE_FAILURE_1 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=4 --preemption-bounding=S --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+Trace count: 100000 (also 0 sleepset blocked, 0 schedulings and 0 branches were rejected due to the bound)
+No errors were detected.
+Total wall-clock time: 0.0 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp87jjnst0/tmpcenbu7uq.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp87jjnst0/tmp3qnybvid.ll /tmp/tmp87jjnst0/tmpcenbu7uq.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp87jjnst0/tmp3qnybvid.ll -I -std=gnu99 -DFORCE_FAILURE_5 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=4 --preemption-bounding=S --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpja9txkrn/tmpc1rfo1xh.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpja9txkrn/tmplktrrbao.ll /tmp/tmpja9txkrn/tmpc1rfo1xh.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpja9txkrn/tmplktrrbao.ll -I -std=gnu99 -DLIVENESS_CHECK_1 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp9fe9kv0f/tmp7uokbaqn.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp9fe9kv0f/tmpocai8pf8.ll /tmp/tmp9fe9kv0f/tmp7uokbaqn.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp9fe9kv0f/tmpocai8pf8.ll -I -std=gnu99 -DLIVENESS_CHECK_2 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v3.19 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpxcy9c49h/tmppolr3_o8.ll -S -emit-llvm -g v3.19
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpxcy9c49h/tmpwad4bsrh.ll /tmp/tmpxcy9c49h/tmppolr3_o8.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpxcy9c49h/tmpwad4bsrh.ll -I -std=gnu99 -DLIVENESS_CHECK_3 -DASSERT_0 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification success
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmpku36vcva/tmpkfux3k2d.ll -S -emit-llvm -g v4.9.6
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmpku36vcva/tmpmn2dyej2.ll /tmp/tmpku36vcva/tmpkfux3k2d.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmpku36vcva/tmpmn2dyej2.ll -I -std=gnu99 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --preemption-bounding=S --bound=4 --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+^^^ Unexpected verification failure
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp83h6mv4h/tmpkojfdioe.ll -S -emit-llvm -g v4.9.6
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp83h6mv4h/tmp7ehjdaxh.ll /tmp/tmp83h6mv4h/tmpkojfdioe.ll
+* Nidhuggc: $ /usr/local/bin/nidhugg /tmp/tmp83h6mv4h/tmp7ehjdaxh.ll -I -std=gnu99 -DFORCE_FAILURE_1 -- --sc --extfun-no-race=fprintf --extfun-no-race=memcpy --bound=4 --preemption-bounding=S --print-progress-estimate --disable-mutex-init-requirement litmus.c
+
+Nidhuggc Error: Command (/usr/local/bin/nidhugg) returned an error exit code (1).
+Trace count: 100000 (also 0 sleepset blocked, 0 schedulings and 0 branches were rejected due to the bound)
+No errors were detected.
+Total wall-clock time: 0.0 s
+--------------------------------------------------------------------
+--- Preparing to run tests on kernel v4.9.6 under sc
+--- Expecting verification failure
+--------------------------------------------------------------------
+WARNING: Unable to infer the input language for input source code.
+WARNING: Guessing C.
+* Nidhuggc: $ /usr/bin/clang-3.8 -o /tmp/tmp6i2s6sfb/tmpczerepv6.ll -S -emit-llvm -g v4.9.6
+* Nidhuggc: $ /usr/local/bin/nidhugg --unroll=5 -transform /tmp/tmp6i2s6sfb/tmpn4fvtvtm.ll /tmp/tmp6i2s6sfb/tmpczerepv6.ll
