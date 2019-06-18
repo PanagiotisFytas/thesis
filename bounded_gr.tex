@@ -1,0 +1,316 @@
+\chapter{Τεχνικές περιορισμού για DPOR}
+\label{bounded}
+
+Σε αυτό το κεφάλαιο Τεχνικές Περιοσμού (Bounding Techniques) για τον DPOR συζητόνται καθώς και προκλήσεις που δημιουργούνται από αυτές τις τεχνικές.
+Οι προκλήσεις που πρέπει να αντιμετωπίσουμε για να περιορίσουμε τον DPOR έχουν ήδη συζητηθεί.
+
+%% Challenges discussion can not be placed before the presentation of the algorithms since it is closely related to the algorithms themselves
+%% and not the Bounding of DPOR. Provided that other algorithms were suggested, different challenges may had been arisen. 
+
+\section{Naive-BPOR}
+
+Οι πρώτη τεχνική περιορισμού που παρουσιάζεται είναι ο Naive-BPOR (Αλγόριθμος \ref{Vanilla}). Ο σκοπός αυτού του αλγορίθμου είναι να μπλοκάρει traces που ξεπερνούν κάποιο
+όριο.
+
+\begin{algorithm}
+    \caption{Naive-BPOR}
+    \label{Vanilla}
+    \SetKwInOut{Input}{input}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$ such that $B_v(E.p) \leq b)$ }{
+            $backtrack(E) :={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep$ and $B_v(E.p) \leq b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p) $}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) to backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep, b)$ \;
+                add $p$ to $Sleep$ \;
+
+            }
+        }
+    }
+\end{algorithm}
+
+Ο Αλγόριθμος \ref{Vanilla} είναι σχεδόν πανομοιότυπος με τον  Source-DPOR(Algorithm \ref{Source}). Η μόνη διαφορά είναι η προσθήκη μια συνθήκης που συνδέεται με τη δρομολόγηση
+διεργασίων. Όταν ένα βήμα μιας διεργασίας $p$ προστίθεται στο $E$ με αποτέλεσμα το  trace $E.p : B_v(E.p) > b$ τότε η διεργασία δεν επιτρέπεται να δρομολογηθεί.
+Ο Αλγόριθμος δεν είναι sound δηλαδή, δεν εξετάζει όλα τα traces τα οποία ανήκουν έχουν bound count μικρότερο από μία τιμή.
+
+Υποθέτουμε το παραάδειμα του ενός εγγραφέα και των δύο αναγνωστών για bound $b=0$. Ένα παράδειγμα αναζήτησης για bound $b=0$ δίνεται στο Figure \ref{Naive-BPOR for bound=$0$}. 
+
+\label{Vanilla0}    
+\trace{w2rvbound.pdf}{Naive-BPOR for bound=$0$}
+
+Όπως μπορούμε να παρατηρήσουμε υπάρχουν 4 traces τα οποία δεν ξεπερνούν το όριο. Αυτά είναι:
+$p.q.q.r.r$, $q.q.p.r.r$, $r.r.p.q.q$, $q.q.r.r.p$.
+Παρολ᾽ αυτά ο Naive-BPOR δεν είναι σσε θέση να τα εξερευνήσει όλα; $r.r.p.q.q$ δεν εξερευνάται.
+Όπως δείξαμε στη σύγκριση μεταξύ  persistent και source sets, το $r$ δεν θα γίνει ποτέ το πρώτο γεγονός στο trace
+καθώς αυτό θα οδηγούσε σε sleep set blocked trace. Η διακλάδωση που θα οδηγούσε στο ισοδύναμο trace με το $r.r.p.q.q$ απορρίπτεται
+καθώς θα έχει μεγαλύτερο bound count από το ζητούμενο. Αξιοπρόσεκτο είναι ότι ένας Naive-BPOR που βασιζόταν σε persistent sets θα εξερευνούσε ένα μεγαλύτερο state-space
+και θα εξερευνούσε και το ζητούμενο trace $r.r.p.q.q$.
+
+\section{BPOR}
+
+Το επόμενο βήμα είναι να υλοποιήσουμε έναν preemption bounded Αλγόριθμο (BPOR) \cite{BPOR}. Αυτός ο Αλγόριθμος θα βασίζεται στα
+persistent sets. Καθώς έχουμε ήδη ένα ορθά υλοποιημένο αλγόριθμο που χρησιμοποιεί persistent sets στον Nidhugg-DPOR μπορούμε εύκολα να υλοποιήσουμε έναν BPOR
+αλγόριθμο. Η καινοτμία του BPOR είναι η εισαγωγή συντηρητικών διακλαδώσεων. Αυτές είναι διακλαδώσει που εισάγονται προκειμένου να εγγυηθούν την εξερεύνηση όλου του
+state space.
+Είναι αρκετά συνηθισμένο ένα trace να ξεπερνάει το  bound limit
+αλλά ένα ισοδύναμό του να μην το ξεπερνάει. Οι συντηρητικές διακλαδώσεις χρησιμοποιούνται γι αυτό το σκοπό.
+
+Για να κάνουμε την ιδέα πιο καθαρή εισάγουμε την έννοια Trace Block.
+\begin{definition}{(Trace block)}
+Για ένα trace $T$ η ακολουθία $B$ από συνεχόμενα γεγονότα είναι ένα Trace Block ανν όλα τα γεγονότα πραγματοποιούντια από την ίδια διεργασία δηλαδή,
+όλα τα γεγονότα έχουν το ίδιο thread id.
+\end{definition}
+
+Η ιδέα πίσω από τις συντηρητικές διακλαδώσεις είναι αρκετά απλή. Μια συντηρητική διακλάδωση προστίθεται στην αρχή του αντίστοιχου
+Block όταν μια διακλάδωση δημιουργείται.
+Συνήθως τα ταυτόχρονα γεγονότα συμβαίνουν μέσα σε ένα block. Έτσι όταν επιλέγεται μια εναλλακτική διακλάδωση 
+το preemption count θα αυξηθεί. Αν η διακλάδωση αυτή είχε εξερευνηθεί από την αρχή του block το preemption count δε θα είχε αυξηθεί.
+Ο BPOR παρουσιάζεται με λεπτομέρια στον Αλγόριθμο \ref{BPOR}. Ο BPOR διαφέρει από τον Classic-BPOR στον διπλά εμφολευμένο βρόγχο που εισάγεται
+στη γραμμή 3. Ο εσωτερικός βρόγχος εισάγεται προκειμένου ο BPOR να υπακούει στον ορισμό των preemption-bounded persistent sets που εισάγαμε στο Κεφάλαιο 2
+Επιπλέον, όπως ισχύει και στον Naive-BPOR, η εξερεύνηση σταματάει όταν το trace ξεπερνάει το όριο που εμείς έχουμε θέσει.
+
+\begin{algorithm}
+    \caption{BPOR}
+    \label{BPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwInput{Initialization}{Explore($ \emptyset $)}
+    \SetKwHangingKw{Let}{let}
+    \Fn{Explore($E$)}{
+        \Let{$s := last(E)$}
+        \For{all process $p$}{
+            \For{all process $q \neq p$}{
+            \If{$\exists i = max(\{ i \in dom(E) \mid E_i$ is dependent and may be co-enabled with $next(s,p)$ and $ E_i.tid = q \} $}{
+                \uIf{$p \in enabled(pre(E,i)))$}{
+                    add $p$ to $backtrack(pre(E,i))$ \;
+                }
+                \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+                \uIf{$j = max(\{ j \in dom(E) \mid j = 0 $ or $ S_{j-1}.tid \neq S_j.tid $ and $ j<i \})$}{
+                    \uIf{$p \in enabled(pre(E,i)))$}{
+                        add $p$ to $backtrack(pre(E,i))$ \;
+                    }
+                    \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+                }
+            }
+            }
+        }
+        \If{$p \in enabled(s)$}{
+            add $p$ to $backtrack(s)$ \;
+        }
+        \Else{
+            add any $u \in enabled(s)$ to $backtrack(s)$ \;
+        }
+        \Let{$visited = \emptyset $}
+        \While{$ \exists u \in (enabled(s) \cap backtrack(s) \backslash visited) $}{
+            add $u$ to $visited$ \;
+            \uIf{$(B_v(S.next(s, u)) \leq c)$}{
+                Explore($S.next(s, u)$) \;
+            }
+        }
+    }
+\end{algorithm}
+
+\section{Nidhugg-BPOR}
+
+Προκειμένου να εκμεταλλευτούμε την υποδομή του Nidhuggs, μια παραλλαγή του αλγορίθμου χρησιμοποιείται.
+Ο αλγόριθμος παρουσιάζεται εδώ \ref{Nidhugg BPOR}.
+
+\begin{algorithm}
+    \caption{Nidhugg-BPOR}
+    \label{Nidhugg BPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in ((enabled(s_{[E]}) \backslash Sleep)$ and $B_v(E.p) <=b$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $ and $B_v(E.p) <=b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E'}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                             add some $q' \in I_{[E']}(u)$ to $backtrack(E') $ \;}
+                        }
+                    \Let{$E''= pre\_block(e,E)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E''}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                            add some $c(q') \in I_{[E'']}(u)$ to $backtrack(E'') $ \;
+                        }
+                    } 
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \}$ } 
+                $Explore(E.p, Sleep)$ \;
+                \If{$p$ is not conservative}{
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+
+Παρατηρούμε ότι τα persistent sets χρησιμοποιείται και για τα conservative και για τα non-conservative branches.
+
+Μια σημαντική πρόκληση δημιουργείται όταν ο DPOR Αλγόριθμος χρησιμοποιείται μαζί με τα sleep sets. Αυτό προκύπται από το γεγονός ότι οι 
+οι συντηρητικές διακλαδώσεις δεν δημιουργούνται προκειμένουν αν επιλύσουν races. Στον Αλγόριθμο των sleep set παρατηρούμε ότι αν ακολουθήσουμε 
+την ίδια στρατηγική με τις μη συντηρητικές διακλαδώσεις πολλά traces θα είχαν μπλοκαριστεί.
+
+Ας πάρουμε και πάλι το παράδειγμα του εγγραφέα και των δύο αναγνωστών, όπως φαίνεται στο Figure \ref{Usage of non-conservative branches}.
+
+\trace{w2rpersistent.pdf}{Usage of non-conservative branches}
+
+Παρατηρούμε ότι το τελευταίο trace θα μπολοκαριστεί από τα sleep set ενώ θα έπρεπε να εξεταστεί. Ο Αλγόριθμος δεν γνωρίζει ότι η διεργασία
+$r$ πρέπει να αφαιρεθεί από το sleep set καθώς δεν υπάρχει και δεν πρόκειται να υπάρξει ποτέ conflict με την πρώτη εντολή της διεργασίας καθώς 
+αυτή σχετίζεται με μια μη μοιραζόμενη μεταβλητή. Προκειμένου να αντιμετωπίσουμε αυτό το πρόβλημα επιλέχθηκε τα 
+conservative branch να μην προστίθενται στο sleep set. Παρολ᾽ αυτά πρέπει να είμαστε σε θέση να καταγράφουμε όλες τις διακλαδώσεις που προστίθενται σε
+ένα συγκεκριμένο σημείο προκειμένου καμία διακλάδωση να μην προστεθεί δύο φορές.
+Χωρίς αυτό το σύνολο που κάνει αυτή την καταγραφή η εκτέλεση δε θα τελείωνε.
+Η λύση είναι η εισαγωγή του συντηρητικού συνόλου (conservative sets) όπου καταγράφεται η προσθήκη των διακλαδώσεων.
+
+Διαισθητικά, ο αλγόριθμος είναι ίδιος με τον Nidhugg-DPOR με την προσθήκη των συντηρητικών διακλαδώσεων.
+Ο Αλγόριθμος βασίζεται στην των conservative sets.
+Τα υπόλοιπα προβλήματα που αντιμετωπίστηκαν δίνονται στην ενότηταα σχετικά με την υλοποίηση.
+
+\tracelong{w2rbpor.pdf}{Example of BPOR execution}
+
+\section{Source-BPOR}
+
+Έχοντας συζητήσει τον BPOR Αλγόριθμο και τον Nidhugg-BPOR, το επόμενο βήμα είναι να προσπαϑήσουμε να συνδιάσουμε τον αλγόριθμο με τα source sets.
+Η πρώτη παρατήρηση που πρέπει να κάνουμε είναι ότι τα source sets και επομένως ο αλγόριθμος που τα δημιουργεί δεν είναι κατάλληλα στην 
+προσθήκη συντηρητικών διακλαδώσεων. Μια γρήγορη επεξήγησ δίνεται στο επόμενο παράδειγμα με τον έναν εγγραφέα και τους δύο αναγνώστες.
+Ας υποθέσουμε έναν αλγόριθμο που χρησιμποιεί source sets για την προσθήκη συντηρητικών διακλαδώσεων.
+Το αποτέλεσμα φαίνεται στο Figure \ref{Following source sets for conservative branches}.
+
+\trace{w2rsourceconservative.pdf}{Following source sets for conservative branches}
+
+Είναι σαφές ότι κάποια traces δεν εξερευνόνται. Συγκεκριμένα, το trace που ξεκινά με τη r θα απορριφθεί. Ο λόγος είναι ότι μοιράζεται τα ίδια
+initials με το r1 ακόμα και στην αρχή αυτού του block. Σαν αποτέλεσμα ο Αλγόριθμος πρέπει να δημιουργεί
+persistent sets όταν συντηρητικές διακλαδώσεις προστίθενται.
+
+Έχοντας υπόψιν την προηγούμενη παρατήρηση ο Αλγόριθμος Source-BPOR δίνεται εδώ \ref{SBPOR}.
+
+\begin{algorithm}
+    \caption{Source-BPOR}
+    \label{SBPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    Explore($\langle \rangle$,$\emptyset$,$b$)\;
+    \Fn{Explore($E$,$Sleep$,$b$)}{
+        \If{$\exists p \in ((enabled(s_{[E]}) \backslash Sleep)$ and $B_v(E.p) <=b$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep $ and $B_v(E.p) <=b$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E') $ \;
+                    }
+                    \Let{$E''= pre\_block(e,E)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E''}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI$ to $backtrack(E') $ \;
+                        }
+                        \Else{
+                            add some $c(q') \in I_{[E'']}(u)$ to $backtrack(E'') $ \;
+                        }
+                    } 
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \}$ } 
+                $Explore(E.p, Sleep)$ \;
+                \If{$p$ is not conservative}{
+                    add $p$ to $Sleep$ \;
+                }
+            }
+        }
+    }
+\end{algorithm}
+
+Παρατηρούμε ότι ο Αλγόριθμος \ref{SBPOR} χρησιμποιεί Source-DPOR (Alg. \ref{Source}) για τη μη συντηρητικές διακλαδώσεις και τον 
+BPOR (Alg. \ref{Nidhugg BPOR}) για τις συντηρητικές διακλαδώσεις.
+
+\section{Προκλήσεις από την προσθήκη Συντηρητικών Διακλαδώσεων}
+%% I still believe that this discussion should be placed after results have been presented.
+
+\subsection{Συντηρητικές Διακλαδώσεις}
+
+Στην προηγούμενη ενότηταη είδαμε ότι τα conservative sets δεν μπορούν να χρησιμποιήσουν τα sleep sets. Αυτό συμβαίνει 
+επειδή αυτές οι διακλαδώσεις δνε προκύπτουν από conflicts και σαν αποτέλεσμα είναι αδύνατο να ``wake up'' άλλες διεργασίες
+των οποίων τα επόμενα βήματα είναι τοπικές λειτουργίες. Το πρόβλημα γίνεται ακόμα πιο πολύπλοκο όταν σκεφτούμε ότι όταν προσθέτουμε
+συντηρητικές διακλαδώσεις ο αλγόριθμος ``ξενχά'' τί έχει λάβει χώρα προηγουμένως. Αυτή η έλλειψη μνήμης οδηγεί σε μια έκρηξη του 
+χώρου καταστάσεων. Αυτή η έκρηξη είναι ακόμα πιο έντονη και από την εξερεύνηση όλου του state space
+Προκειμένου να εξηγήοσυμε καλύτερα, ένα παράδειγμα που περιλαμβάνει έναν εγγραφέα και τρεις αναγνώστες δίνεται στο Figure \ref{writer-3-readers
+explosion}. Συγκεκριμένα, η διεργασία εγγραφέας που γράφει τη μεταβλητή x ενώ οι διεργασίες αναγνώστες διαβάζουν αυτή τη μεταβλητή
+αφού διαβάσουν μια άλλη μοναδική για την κάθε διεργασία μεταβλητή που μπορεί να θεωρηθεί τοπική λειτουργία.
+
+\trace{w3rbpor.pdf}{writer-3-readers explosion}
+
+Όπως μπορούμε να συμπεράνουμε από το παράδειγμα οι εξερευνημένες καταστάσεις είναι περισσότερες από τις αναμενόμενες. 
+Ο αναμενόμενος αριθμός θα έπρεπε να είναι $8$ αλλά στην πραγματικότητα είναι $4!$. Παρατηρούμε ότι κάθε εγγραφέας γίνεται baccktracked 
+στην πρώτηη εντολή καθώς έχει conflict με το $w(x)$. Αυτές οι διακλαδώσιιες θα πρέπει να γίνουν blocked απο την unbounded search. 
+Παρολ᾽ αυτά, αυτές οι διακλαδώσεις είναι συντηρητικές.
+Υπάρχουν  extra traces όπως το $r2.r1.w$ trace που ελέγχει ήδη το εξερευνημένο $r1.r2.w$ trace. 
+Ο Αλγόριθμος δεν είναι σε θέση να γνωρίζει όταν προσθέτει συντηρητικές διακλαδώσεις 
+αν ισοδύναμα traces έχουν ήδη εξερευνηθεί. Η κατάσταση γίνεται χειρότερ όταν ακόμα περισσότεροι εγγραφείς διαβάζουν
+την ίδια μοιραζόμενη μεταβλητή καθώς αν θέσουμε ένα μεγάλο όριο τότε ο αριθμός των traces προσεγγίζει την τιμή $N!$ 
+όπου $N$ ο συνολικός αριθμόες των διεργασιών. 
+
+\subsection{Sleep Sets}
+Τα αποτελέσματα των διαφόρων  bounding αλγορίθμων υπονοεί ότι ο αριθμός τον sleep set blocked traces είναι πολύ μικρός
+σε σχέση με τον αριθμό των εξερευνημένων traces. Αυτό προκύπτει από τα conservative branches. Έχουμε ήδη δείξει όταν μία διεργασία
+προστείθεται και ως συντηρητική διακλάδωση και ως μη συντηρητική διακλάδωση η συντηρητική φύση της διακλάδωσης υπερισχύει.
+Traces που θα θεωρούνταν περιττά στην ubounded εκδοχή του αλγορίθμου δεν είναι περιττά στην bounded εκδοχή καθώς οι μη 
+συντηρητικές διακλαδώσεις μπορεί να έχουν απορριφθεί.
+
+Ένα ακόμα  ``πρόβλημα'' με τα sleep sets είναι ότι  ``ευνοούν'' τις διακλαδώσεις που αυξάνουν το bound count ενώ μπλοκάρουν
+traces με μικρότερο bound count. Στο Figure \ref{Sleep set contradiction} φαίνεται πως μια διακλάδωση που δεν οδηγεί
+σε αύξηση του bound count απορρίπτεται.
+
+\trace{sleepsetproblem.pdf}{Sleep set contradiction}
+
+Αυτή η συμπεριφορά είνα αρκετά λογική αν αναλογιστούμε την depth-first φύση του αλγορίθμου.
+Αποτέλεσμα είναι να επιλέγει πρώτα διακλαδώσει που βρίσκονται χαμηλότερα στο trace 
+όπου το bound count είναι μεγαλύτερο καθώς περισσότερα preemptive switches έχουν συμβεί. Ο σκοπός των sleep
+sets είναι να μπλοκάρουν traces, δηλαδή traces που έχουν ήδη εξερευνηθεί. Έτσι traces με μικρότερο bound count απορρίπτονται
+Μια μέθοδος που θα εξερευνούσε το state space με έναν breadth first τρόπο ίσως δε θα ήταν εφικτή καθώς θα απαιτούσε
+πολλή μνήμη από ημιτελή traces.
+
+\iffalse
+\subsection{Source Sets - Optimal DPOR}
+The source set technique which can lead many times to optimal coverage of the state space manages avoid the exploration
+of redundant sets. However as it was discussed in the previous section it avoids the scheduling of the traces.
+Unfortunately it cannot be used in the when conservative branches are added since these branches are not related to the
+sleep sets. As a result the conservative branches alone will never lead to sleep set blocked traces.
+
+However, in many test cases there are some sleep set blocked traces which are caused by conditional reads and writes.
+When a technique which does not utilize the sleep sets is to be used these traces would have been easily eliminated.
+Unfortunately, it was experimentally shown that explored traces outnumber the sleepset blocked traces and, consequently,
+the implementation of such an algorithm would have a minor impact.
+
+Moreover, we have shown that even if we maintain the source-set optimization for the non-conservative branches the
+results will be equivalent with using persistent sets. The idea of keeping the rejected traces from Source-DPOR that
+would have been added from DPOR (with persistent sets) was rejected since it harms the soundness of the algorithm.
+\fi
+
+\subsection {The Performance - Soundness Tradeoff}
+
+Από την προηγούμενη συζήτηση είναι σαφέ ότι όλοι οι bounding algorithms έχουν να αντιμετωπίσουν ένα tradeoff. Κάποια αλγόριθμοι είναι γρηγορότεροι
+καθώς εξερευνούν ένα μικϱό κομμάτι του state space, χωρίς να καλύπτουν όλο το state space μέσα στο bound (Αλγόριθμος \ref{Vanilla}), 
+ενώ άλλοι εξερευνούν όλο το state space (Αλγόριθμος \ref{Nidhugg BPOR}) μέσα στο bound αλλά απαιτούν πιο πολλή ώρα.

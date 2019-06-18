@@ -1,0 +1,61 @@
+* Done
+    We need to discuss: 
+
+    p2 over 1.2
+    p3 Introduce the notion of concurrency error
+    p3 Example inverted
+    Testing vs Verification
+    Vanilla-BPOR bad name
+    Unsoundness of Vanilla-BPOR bad?
+    bad formatting page22.
+    Factored out page23.
+
+    See overview because chapter 3 will be split.
+    A slash is wrong somewhere
+    Change Testing vs modelchecking vs Verification
+    vdash may be redundant
+    Definition of persistent sets
+    -- Make an example of source sets
+    Comparison
+
+    ch4
+    Classic-DPOR introduced.
+
+    Pending changes
+    Change name of graph
+
+    Questions
+    BUG priority
+    RCU
+    tables
+
+    Στόχοι:
+    Να αλλάξω το κείμενο του testing vs Verification και να βάλω citation. 
+    Να αλλάξω το κείμενο με το παράδειγμα του persistent. 
+    Να βάλω κώδικες δίπλα στα παραδείγματα.
+
+    Nidhugg discussed before presented.
+    Arrow in clock vectors hasn't been introduced.
+    Complete challenges 
+
+    Should I add BPOR? Probably
+
+    Change RCU
+    Add BPOR
+
+Search vs Techniques (OOPSLA)
+
+* TODO
+    - Tables Crosscheck 
+    - change table names <<< Kostis
+    - Add Hamiltonian Path Time limitation
+    - Add include pseudo code -> Done
+    - Change reasons why Concuerror is not valid -> Done
+
+Lazy-BPOR better because of upper bound and reduces to a problem that heuristics can be found
+
+Names of tables
+overview
+bounded search or Techniques
+
+

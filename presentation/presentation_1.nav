@@ -1,0 +1,164 @@
+\beamer@endinputifotherversion {3.36pt}
+\headcommand {\slideentry {0}{0}{1}{1/1}{}{0}}
+\headcommand {\beamer@framepages {1}{1}}
+\headcommand {\slideentry {0}{0}{2}{2/2}{}{0}}
+\headcommand {\beamer@framepages {2}{2}}
+\headcommand {\sectionentry {1}{Εισαγωγικές έννοιες}{3}{Εισαγωγικές έννοιες}{0}}
+\headcommand {\beamer@sectionpages {1}{2}}
+\headcommand {\beamer@subsectionpages {1}{2}}
+\headcommand {\slideentry {1}{0}{1}{3/3}{}{0}}
+\headcommand {\beamer@framepages {3}{3}}
+\headcommand {\sectionentry {2}{Background Knowledge}{4}{Background Knowledge}{0}}
+\headcommand {\beamer@sectionpages {3}{3}}
+\headcommand {\beamer@subsectionpages {3}{3}}
+\headcommand {\beamer@subsectionentry {0}{2}{1}{4}{Computational Model}}\headcommand {\beamer@subsectionpages {4}{3}}
+\headcommand {\slideentry {2}{1}{1}{4/4}{Computational Model}{0}}
+\headcommand {\beamer@framepages {4}{4}}
+\headcommand {\slideentry {2}{1}{2}{5/5}{Computational Model}{0}}
+\headcommand {\beamer@framepages {5}{5}}
+\headcommand {\beamer@subsectionentry {0}{2}{2}{6}{Model Checking}}\headcommand {\beamer@subsectionpages {4}{5}}
+\headcommand {\slideentry {2}{2}{1}{6/6}{Model Checking}{0}}
+\headcommand {\beamer@framepages {6}{6}}
+\headcommand {\slideentry {2}{2}{2}{7/7}{Model Checking}{0}}
+\headcommand {\beamer@framepages {7}{7}}
+\headcommand {\slideentry {2}{2}{3}{8/8}{Model Checking}{0}}
+\headcommand {\beamer@framepages {8}{8}}
+\headcommand {\slideentry {2}{2}{4}{9/9}{Model Checking}{0}}
+\headcommand {\beamer@framepages {9}{9}}
+\headcommand {\slideentry {2}{2}{5}{10/10}{Model Checking}{0}}
+\headcommand {\beamer@framepages {10}{10}}
+\headcommand {\slideentry {2}{2}{6}{11/11}{Model Checking}{0}}
+\headcommand {\beamer@framepages {11}{11}}
+\headcommand {\slideentry {2}{2}{7}{12/12}{Model Checking}{0}}
+\headcommand {\beamer@framepages {12}{12}}
+\headcommand {\slideentry {2}{2}{8}{13/13}{Model Checking}{0}}
+\headcommand {\beamer@framepages {13}{13}}
+\headcommand {\slideentry {2}{2}{9}{14/14}{Model Checking}{0}}
+\headcommand {\beamer@framepages {14}{14}}
+\headcommand {\slideentry {2}{2}{10}{15/15}{Model Checking}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\beamer@subsectionentry {0}{2}{3}{16}{Dynamic Partial Order Reduction}}\headcommand {\beamer@subsectionpages {6}{15}}
+\headcommand {\slideentry {2}{3}{1}{16/16}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {16}{16}}
+\headcommand {\slideentry {2}{3}{2}{17/17}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {17}{17}}
+\headcommand {\slideentry {2}{3}{3}{18/18}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {18}{18}}
+\headcommand {\slideentry {2}{3}{4}{19/19}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {19}{19}}
+\headcommand {\slideentry {2}{3}{5}{20/20}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {20}{20}}
+\headcommand {\slideentry {2}{3}{6}{21/21}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {21}{21}}
+\headcommand {\slideentry {2}{3}{7}{22/22}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {22}{22}}
+\headcommand {\slideentry {2}{3}{8}{23/23}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {23}{23}}
+\headcommand {\slideentry {2}{3}{9}{24/24}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {24}{24}}
+\headcommand {\slideentry {2}{3}{10}{25/25}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {25}{25}}
+\headcommand {\beamer@subsectionentry {0}{2}{4}{26}{Bounded Dynamic Partial Order Reduction}}\headcommand {\beamer@subsectionpages {16}{25}}
+\headcommand {\slideentry {2}{4}{1}{26/26}{Bounded Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {26}{26}}
+\headcommand {\slideentry {2}{4}{2}{27/27}{Bounded Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {27}{27}}
+\headcommand {\slideentry {2}{4}{3}{28/28}{Bounded Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {28}{28}}
+\headcommand {\slideentry {2}{4}{4}{29/29}{Bounded Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@framepages {29}{29}}
+\headcommand {\sectionentry {3}{Dynamic Partial Order Reduction}{30}{Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@sectionpages {4}{29}}
+\headcommand {\beamer@subsectionpages {26}{29}}
+\headcommand {\slideentry {3}{0}{1}{30/30}{}{0}}
+\headcommand {\beamer@framepages {30}{30}}
+\headcommand {\slideentry {3}{0}{2}{31/31}{}{0}}
+\headcommand {\beamer@framepages {31}{31}}
+\headcommand {\slideentry {3}{0}{3}{32/32}{}{0}}
+\headcommand {\beamer@framepages {32}{32}}
+\headcommand {\slideentry {3}{0}{4}{33/33}{}{0}}
+\headcommand {\beamer@framepages {33}{33}}
+\headcommand {\slideentry {3}{0}{5}{34/34}{}{0}}
+\headcommand {\beamer@framepages {34}{34}}
+\headcommand {\slideentry {3}{0}{6}{35/35}{}{0}}
+\headcommand {\beamer@framepages {35}{35}}
+\headcommand {\sectionentry {4}{Bounded Dynamic Partial Order Reduction}{36}{Bounded Dynamic Partial Order Reduction}{0}}
+\headcommand {\beamer@sectionpages {30}{35}}
+\headcommand {\beamer@subsectionpages {30}{35}}
+\headcommand {\slideentry {4}{0}{1}{36/36}{}{0}}
+\headcommand {\beamer@framepages {36}{36}}
+\headcommand {\slideentry {4}{0}{2}{37/37}{}{0}}
+\headcommand {\beamer@framepages {37}{37}}
+\headcommand {\slideentry {4}{0}{3}{38/38}{}{0}}
+\headcommand {\beamer@framepages {38}{38}}
+\headcommand {\slideentry {4}{0}{4}{39/39}{}{0}}
+\headcommand {\beamer@framepages {39}{39}}
+\headcommand {\slideentry {4}{0}{5}{40/40}{}{0}}
+\headcommand {\beamer@framepages {40}{40}}
+\headcommand {\slideentry {4}{0}{6}{41/41}{}{0}}
+\headcommand {\beamer@framepages {41}{41}}
+\headcommand {\slideentry {4}{0}{7}{42/42}{}{0}}
+\headcommand {\beamer@framepages {42}{42}}
+\headcommand {\slideentry {4}{0}{8}{43/43}{}{0}}
+\headcommand {\beamer@framepages {43}{43}}
+\headcommand {\slideentry {4}{0}{9}{44/44}{}{0}}
+\headcommand {\beamer@framepages {44}{44}}
+\headcommand {\beamer@subsectionentry {0}{4}{1}{45}{Challenges from the Approach}}\headcommand {\beamer@subsectionpages {36}{44}}
+\headcommand {\slideentry {4}{1}{1}{45/45}{Challenges from the Approach}{0}}
+\headcommand {\beamer@framepages {45}{45}}
+\headcommand {\slideentry {4}{1}{2}{46/46}{Challenges from the Approach}{0}}
+\headcommand {\beamer@framepages {46}{46}}
+\headcommand {\slideentry {4}{1}{3}{47/47}{Challenges from the Approach}{0}}
+\headcommand {\beamer@framepages {47}{47}}
+\headcommand {\sectionentry {5}{Implementation of Algorithms in Nidhugg}{48}{Implementation of Algorithms in Nidhugg}{0}}
+\headcommand {\beamer@sectionpages {36}{47}}
+\headcommand {\beamer@subsectionpages {45}{47}}
+\headcommand {\slideentry {5}{0}{1}{48/48}{}{0}}
+\headcommand {\beamer@framepages {48}{48}}
+\headcommand {\slideentry {5}{0}{2}{49/49}{}{0}}
+\headcommand {\beamer@framepages {49}{49}}
+\headcommand {\sectionentry {6}{Evaluation}{50}{Evaluation}{0}}
+\headcommand {\beamer@sectionpages {48}{49}}
+\headcommand {\beamer@subsectionpages {48}{49}}
+\headcommand {\slideentry {6}{0}{1}{50/50}{}{0}}
+\headcommand {\beamer@framepages {50}{50}}
+\headcommand {\slideentry {6}{0}{2}{51/51}{}{0}}
+\headcommand {\beamer@framepages {51}{51}}
+\headcommand {\slideentry {6}{0}{3}{52/52}{}{0}}
+\headcommand {\beamer@framepages {52}{52}}
+\headcommand {\slideentry {6}{0}{4}{53/53}{}{0}}
+\headcommand {\beamer@framepages {53}{53}}
+\headcommand {\slideentry {6}{0}{5}{54/54}{}{0}}
+\headcommand {\beamer@framepages {54}{54}}
+\headcommand {\slideentry {6}{0}{6}{55/55}{}{0}}
+\headcommand {\beamer@framepages {55}{55}}
+\headcommand {\slideentry {6}{0}{7}{56/56}{}{0}}
+\headcommand {\beamer@framepages {56}{56}}
+\headcommand {\sectionentry {7}{Further Discussion}{57}{Further Discussion}{0}}
+\headcommand {\beamer@sectionpages {50}{56}}
+\headcommand {\beamer@subsectionpages {50}{56}}
+\headcommand {\slideentry {7}{0}{1}{57/57}{}{0}}
+\headcommand {\beamer@framepages {57}{57}}
+\headcommand {\slideentry {7}{0}{2}{58/58}{}{0}}
+\headcommand {\beamer@framepages {58}{58}}
+\headcommand {\slideentry {7}{0}{3}{59/59}{}{0}}
+\headcommand {\beamer@framepages {59}{59}}
+\headcommand {\slideentry {7}{0}{4}{60/60}{}{0}}
+\headcommand {\beamer@framepages {60}{60}}
+\headcommand {\slideentry {7}{0}{5}{61/61}{}{0}}
+\headcommand {\beamer@framepages {61}{61}}
+\headcommand {\slideentry {7}{0}{6}{62/62}{}{0}}
+\headcommand {\beamer@framepages {62}{62}}
+\headcommand {\slideentry {7}{0}{7}{63/63}{}{0}}
+\headcommand {\beamer@framepages {63}{63}}
+\headcommand {\slideentry {7}{0}{8}{64/64}{}{0}}
+\headcommand {\beamer@framepages {64}{64}}
+\headcommand {\slideentry {7}{0}{9}{65/65}{}{0}}
+\headcommand {\beamer@framepages {65}{65}}
+\headcommand {\slideentry {7}{0}{10}{66/66}{}{0}}
+\headcommand {\beamer@framepages {66}{66}}
+\headcommand {\beamer@partpages {1}{66}}
+\headcommand {\beamer@subsectionpages {57}{66}}
+\headcommand {\beamer@sectionpages {57}{66}}
+\headcommand {\beamer@documentpages {66}}
+\headcommand {\def \inserttotalframenumber {66}}

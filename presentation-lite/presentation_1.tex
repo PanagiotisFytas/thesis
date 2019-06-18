@@ -1,0 +1,464 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass[9pt]{beamer}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+\usepackage[cm-default]{fontspec}
+\usepackage{unicode-math}
+\usepackage{mathtools}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyvrb}
+\usepackage{float}
+\usepackage{color}
+%\usepackage[table,xcdraw]{xcolor}
+\usepackage{siunitx}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{pdflscape}
+\usepackage{listings}
+\usepackage{algorithm2e}
+\usepackage{xcolor}
+
+\def\HiLi{\leavevmode\rlap{\hbox to \hsize{\color{yellow!50}\leaders\hrule height .8\baselineskip depth .5ex\hfill}}}
+
+
+\usepackage{graphicx}
+
+
+
+\usepackage{fontspec}
+\usepackage{xunicode}
+\usepackage{xltxtra}
+%\setromanfont{Comic Sans MS}
+\setromanfont{CMU Serif}
+\setsansfont{CMU Sans Serif}
+\setmonofont{FreeMono}
+%\usepackage[english,greek{babel}
+%\usepackage[iso-8859-7]{inputenc}
+%\setmainfont{Minion Pro} % substitute with any font that exists on your system
+%\setsansfont{Myriad Pro} % substitute with any font that exists on your system
+%\setmonofont{Consolas} % substitute with any font that exists on your system
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+
+\setbeamertemplate{theorems}[numbered]
+
+\newcommand{\img}[2]{
+    \begin{center}
+\includegraphics[scale=#1]{#2}
+\end{center}
+}
+
+
+\graphicspath{ {img/} }
+\newcommand{\trace}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.3]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\tracelong}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.2]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\graph}[2]{
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.5]{#1}
+\caption{#2}
+\label{#2}
+\end{figure}
+}
+
+\newcommand{\mediumGraph}[2]{
+  \begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.2]{#1}
+    \caption{#2}
+    \label{#2}
+    \end{figure}
+    }
+
+\lstset{basicstyle=\ttfamily,columns=fullflexible}
+
+\newcommand{\Code}[2]{
+  \begin{minipage}{\linewidth}
+  \lstinputlisting[basicstyle=\ttfamily\scriptsize,caption=#2,captionpos=b]{#1}
+  \label{#2}
+  \end{minipage}
+ }
+
+\newcommand{\Output}[2]{
+  %%\BVerbatimInput[fontsize=\tiny]{#1}
+  \begin{minipage}{0.85\textwidth}
+  \lstinputlisting[label={#2},numbers=none,frame=none,caption=#2]{#1}
+  \end{minipage}
+  %%\caption{#2}
+ }
+
+\newcommand{\Side}[5]{
+  %\begin{figure}
+    \begin{minipage}{0.5\textwidth}
+      \lstinputlisting[frame=none, numbers=none,caption={[#2]}]{#1}
+    \end{minipage}
+    %%\begin{minipage}{0.1\textwidth}
+    %%  \includegraphics[scale=0.1]{arrow.pdf}
+    %%\end{minipage}
+    \begin{minipage}{0.5\textwidth}
+      %%\VerbatimInput{#2}
+      \lstinputlisting[frame=none, numbers=none,caption={[#4]}]{#3}
+    \end{minipage}
+    \captionof{figure}{#5}
+    \label{#5}
+    
+     % \caption{#5}
+     % \label{#5}
+  %\end{figure}
+} 
+
+\newcommand{\bigtabular}[2]{
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+}
+
+\newcommand{\landscapetabular}[2]{
+\begin{landscape}
+ \begin{table} 
+   \resizebox{\linewidth}{!}{
+      \input{#1}
+    }
+    \caption{#2}
+    \label{#2}
+ \end{table}
+\end{landscape}
+}
+
+\newcommand{\smalltabular}[2]{
+  \begin{table} 
+    \resizebox{0.8\textwidth}{!}{\begin{minipage}{\textwidth}
+     \input{#1}
+     \caption{#2}
+     \label{#2}
+    \end{minipage}}
+  \end{table} 
+}
+
+\newtheorem{thm}{Θεώρημα}[section]
+\newtheorem{lem}[thm]{Λήμμα}
+\newtheorem{por}[thm]{Πόρισμα}
+\newtheorem{defn}[thm]{Ορισμός}
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Short title]{Parallelizing Concuerror: A Dynamic Partial Order Reduction Testing Tool for Erlang Programs} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Φυτάς Παναγιώτης} % Your name
+\institute[NTUA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+ΣΗΜΜΥ - ΕΜΠ \\ % Your institution for the title page
+\medskip
+\textit{03112113} % Your email address
+}
+\date{} % Date, can be changed to a custom date
+\setcounter{subsection}{1}
+
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Summary} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+%------------------------------------------------
+
+%\subsection{} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
+
+\begin{frame}{Aim of Thesis}
+
+\begin{itemize}[<+->]
+    \item Develop parallel version for source-DPOR algorithm.
+    \item Develop parallel version for optimal-DPOR algorithm.
+    \item Implement those parallel algorithms at Concuerror.
+    \item Evaluate the performance of our implementation.
+\end{itemize}
+
+\end{frame}
+
+\section{Background}
+%% \frame{\sectionpage}
+
+\begin{frame}{Concurrent Computing}
+\emph{Concurrent Computing} is a form of computing in which several computations are executed during
+overlapping time periods concurrently, instead of sequentially (one completing before the next starts).
+\\
+
+Essential because:
+\pause
+\begin{itemize}[<+->]
+    \item Multithreaded computer architectures 
+    \item Availability of services
+    \item Controllability 
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Concurrent Computing}
+
+However, concurrency is difficult to get right:
+\pause
+\begin{itemize}[<+->]
+    \item Deadlocks
+    \item Race conditions
+    \item Resource starvation 
+    \item Scheduling non-determinism
+    \begin{itemize}[<+->]
+        \item Interleaving non-determinism
+        \item Timing non-determinism
+    \end{itemize}
+\end{itemize}
+\pause
+Errors can occur only on specific rare interleavings. 
+Detecting and reproducing bugs becomes extremely hard (Heisenbugs).
+
+\end{frame}
+
+\begin{frame}{Modeling our Problem}
+
+\begin{itemize}[<+->]
+    \item An interleaving represents a scheduling of the concurrent program.
+    \item The state-space is the set of all possible interleavings.
+    \item In order to verify a program, the complete state-space must be explored.
+\end{itemize}
+    
+
+\end{frame}
+
+\begin{frame} {Stateless Model Checking}
+
+\begin{itemize}[<+->]
+    \item Stateless Model Checking systematically explores all possible interleavings.
+    \item Combinatorial state-space explosion.
+    \item Different interleavings can be equivalent.
+\end{itemize}
+\pause
+\tracelong{../img/initstateless.png}{Stateless Model Checking Example}
+
+\end{frame}
+
+\begin{frame} {Partial Order Reduction}
+
+Partial Order Reduction tries to avoid exploring equivalent interleavings through race detection.
+
+\trace{../img/initpor.png}{Partial Order Reduction Example}
+
+\end{frame}
+
+\begin{frame} {Partial Order Reduction}
+\begin{itemize}[<+->]
+    \item Static Partial Order Reduction: Dependencies are tracked before execution, by statically analazing the code.
+    \item Dynamic Partial Order Reduction (DPOR): Actual dependencies are observed during runtime.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {General DPOR}
+
+DPOR: performs a DFS using a backtrack set. Exploration is based on two techniques:
+\begin{itemize}[<+->]
+    \item Persistent sets: only a provably sufficient subset of the enabled processes gets explored.
+    \item Sleep sets: contain processes, whose exploration would be redundant, 
+    preventing equivalent interleavings from being fully explored.
+\end{itemize}
+
+\end{frame}
+
+%% \subsection{Dynamic Partial Order Reduction}
+
+\begin{frame} {Important Concepts}
+
+\begin{itemize}[<+->]
+    \item The complete execution of a process $p$ splits into different execution steps, which are
+    to be executed atomically. Those steps are referred to as $events$. Each event must be deterministic.
+    \item An execution sequence $E$ of a system is a finite sequence of execution steps
+    of its processes that is performed from a unique initial state.
+    \item We use $E \simeq E'$ to denote that $E$ and $E'$ are
+    equivalent, and $[E]_{\simeq}$ to denote the equivalence class of E.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Source Sets}
+
+\begin{definition}[Initials after an execution sequence $E.w$, $I_{[E]}(w)$]
+    $p \in I_{[E]}(w)$ if and only if there is a sequence $w'$ such that $E.w \simeq E.p.w'$.
+\end{definition}
+
+
+\begin{definition}[Weak Initials after an execution sequence $E.w$, $WI_{[E]}(w)$]
+
+$p \in WI_{[E]}(w)$ if and only if there are sequences $w'$ and $v$ such
+that $E.w.v \simeq E.p.w'$.
+
+\end{definition}
+    
+\end{frame}
+
+
+\begin{frame}{Source Sets}
+
+\begin{definition}[Source Sets]
+Let $E$ be an execution sequence,
+and let $W$ be a set of sequences, such that $E.w$ is an execution
+sequence for each $w \in W$. A set $T$ of processes is a source set for
+$W$ after $E$ if for each $w \in W$ we have $WI_{[E]}(w) \cap T  \neq \emptyset$.
+\end{definition}
+
+\end{frame}
+
+\begin{frame}{Source-DPOR}
+
+\begin{figure}
+    
+\scalebox{0.7}{
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Source-DPOR}
+    \label{Source}
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$\;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{[E']}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E')$\;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$\;
+                add $p$ to $Sleep$\;
+
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+\end{document} 

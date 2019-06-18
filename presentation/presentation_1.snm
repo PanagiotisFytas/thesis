@@ -1,0 +1,40 @@
+\beamer@slide {Example of non-concurrency error}{5}
+\beamer@slide {Example of concurrency error}{5}
+\beamer@slide {Comparing Testing, Model Checking and Verification}{6}
+\beamer@slide {Examples of Interleavings}{8}
+\beamer@slide {GeneralDPOR}{17}
+\beamer@slide {Construction of persistent sets}{19}
+\beamer@slide {Construction of Source Sets}{23}
+\beamer@slide {Example of Sleep Set Optimization}{25}
+\beamer@slide {Source}{30}
+\beamer@slide {DPORV}{31}
+\beamer@slide {NDPOR}{33}
+\beamer@slide {Construction of persistent sets in Nidhugg when there is a write process}{34}
+\beamer@slide {Construction of persistent sets in Nidhugg when both are read processes}{35}
+\beamer@slide {Vanilla}{36}
+\beamer@slide {Naive-BPOR for bound=$0$}{37}
+\beamer@slide {BPOR}{38}
+\beamer@slide {Nidhugg BPOR}{39}
+\beamer@slide {Following source sets for conservative branches}{41}
+\beamer@slide {SBPOR}{43}
+\beamer@slide {writer-3-readers explosion}{45}
+\beamer@slide {Sleep set contradiction}{46}
+\beamer@slide {Nidhugg's Flow Chart}{48}
+\beamer@slide {writer-N-readers}{50}
+\beamer@slide {Source-DPOR vs Nidhugg-DPOR for Synthetic tests}{50}
+\beamer@slide {writer-N-readers bounded}{51}
+\beamer@slide {Traces for various bound limits}{51}
+\beamer@slide {RCU results for bound $b=1$}{52}
+\beamer@slide {RCU results for bound $b=4$}{53}
+\beamer@slide {Comparison between DPOR and BPOR with the bug}{54}
+\beamer@slide {Source-BPOR and Nidhugg-BPOR equivalence Case 1}{55}
+\beamer@slide {Source-BPOR and Nidhugg-BPOR equivalence Case 2}{56}
+\beamer@slide {An example of avoidable preemption-switch}{57}
+\beamer@slide {NBBPOR}{58}
+\beamer@slide {Adding a new block to the dependencies graph}{59}
+\beamer@slide {Graph example}{60}
+\beamer@slide {Lazy-BPOR}{61}
+\beamer@slide {writer-N-readers bounded by the first estimation algorithm}{62}
+\beamer@slide {Traces for the first estimation algorithm for various bound limits}{62}
+\beamer@slide {Comparison between DPOR and Lazy-BPOR without the bug}{63}
+\beamer@slide {Comparison between BPOR and Lazy-BPOR}{64}

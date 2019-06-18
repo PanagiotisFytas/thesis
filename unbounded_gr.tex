@@ -1,0 +1,198 @@
+\chapter{Unbounded DPOR}
+\label{unbounded}
+
+Σε αυτό το κεφάλαιο συζητόνται οι αλγόριθμοι Classic-DPOR και Source-DPOR. Αυτοί οι αλγόριθμοι διαφέρουν μεταξύ τους σε ό,τι αφορά τα επαρκή σύνολα που χρησιμοποιούν προκειμένου
+να εξερευνήσουν το χώρο καταστάσεων.Ο DPOR βασίζεται στα persistent sets ενώ ο Source-DPOR στα source sets.    
+
+\section{Source-DPOR}
+Σε αυτή την ενότητα παρουσιάζεται ο Source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} αλγόριθμος. Παρόλο που ο Source-DPOR είναι μεταγενέστερος του Classic-DPOR, όπως φαίνεται και 
+από το όνομα, επιλέγουμε να τον παρουσιάσουμε πρώτο καθώς όλοι οι αλγόιρθμοι που παρουσιάζονται σε αυτή τη διπλωματική βασίζονται στον Source-DPOR.
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}
+    \caption{Source-DPOR}
+    \label{Source}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{E'}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E') $ \;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$ \;
+                add $p$ to $Sleep$ \;
+
+            }
+        }
+    }
+\end{algorithm}
+
+\noindent Αρχικά μια αυθαίρετη ενεργή διεργασία που δεν κοιμάται προστίθεται στο $backtrack(E)$. 
+
+Σε κάθε βήμα ο αλγόριθμος αποτελείται από δύο διακριτά βήματα.
+Κατα τη διάρκεια του πρώτου βήματος ο εντοπισμός συναγωνισμών (races) λαμβάνει χώρα.
+Ο αλγόριθμος επιλέγει μια διεργασία $p$ η οποία μπορεί να εκτελέσει το επόμενό της βήμα, δηλαδή, $p \in enabled(s_{[E]})$, και την προσθέτει στο τέλος του υπο εξερεύνηση trace $E$.
+Στη συνέχεια ο αλγόριθμος βρίσκει κάθε γεγονός $e$ το οποίο περιέχεται ήδη στο υπο εξερεύνηση trace ($e \in dom(E)$) και το αντιμεταθέτει με το επόμενο βήμα του $p$.
+
+Αυτό συμβαίνει προκειμένου να εξερευνηθεί μια ακολουθία εκτέλεσης για την οποία το $p$ συμβαίνει πριν το $e$.
+Έχουμε ότι η ακολουθία αποτελείται από τα:
+\begin{itemize} 
+\item $E' \equiv pre(E,e)$: την υπακολουθία $E'$ που αποτελείται από γεγονότα δρομολογημένα πριν το $e$ στο $E$.
+\item $u \equiv notdep(e,E).p$: την συνένωνση $u$ από όλα τα γεγονότα που είναι δρομολογημένα μετά το  $e$ στο $E$ αλλά είναι ανεξάρτητα από τα $e$ και $p$.
+\item $proc(e)$ που είναι το id της διεργασίά που  προκάλεσε το $e$.
+\end{itemize}
+Στη συνέχεια ο αλγόριθμος εξετάζει αν υπάρει κάποια διεργασία που ανήκει στο $I_{[E']}(u)$ και είναι ήδη στο $backtrack(E')$. 
+Αν όχι, τότε μια διεργσία στο $I_{[E']}(u)$ προστίθεται στο backtrack.
+
+Κατά τη φάση της εξερεύνησης, η εξερεύνηση ξεκινά από το $E.p$. Το σημαντικό κομμάτι είναι ο υπολογισμός του sleep set του επόμενου βήματος καθώς κάποιες διεργασίες ίσως πρέπει να 
+ξυπνήσουν.
+Αν το επόμενο βήμα μιας διεργασίας συγκρούεται με το $next(p)$ τότε αυτή η διεργασία πρέπει να ξυπνήσει. Σαν αποτέλεσμα το sleep set αποτελείται από τις είδη κοιμώμενες διεργασίες
+των οποίων το επόμενο βήμα είναι ανεξάρτητο από το $next(p)$, δηλαδή ισχύει, $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $ 
+Μετά το τέλος της εξερεύνησης του $E.p$, το $p$ προστίθεται στο sleep set επειδή θέλουμε να αποτρέψουμε την εξερεύνηση ενός ισοδύναμου trace.
+
+\section{Classic-DPOR}
+
+Επειδή ο Source-DPOR χρησιμποιεί διανυσματικά ρολόγια για να παρακολουθεί τα γεγονότα θα χρησιμοποιήσουμε τον DPOR με χρήση Clock Vectors \cite{FlanaganDPOR} και μια παραλλαγή του που δίνεται στον Αλγόριθμο \ref{DPORV}.
+
+\begin{algorithm}
+    \caption{DPOR using Clock Vectors (Classic-DPOR)}
+    \label{DPORV}
+    \SetKwInOut{Input}{input}
+    \SetKwInput{Initialization}{Explore($\emptyset, \lambda x. \bot$)}
+    \SetKwHangingKw{Let}{let}
+    \Fn{Explore($E$,$C$)}{
+        \Let{$s := last(E)$}
+        \For{all process $p$}{
+            \If{$\exists i = max(\{ i \in dom(E) \mid E_i$ is dependent and may be co-enabled with $next(s,p)$ and $i \not \leq  C(p)(proc(E_i)) \} $}{
+                \uIf{$p \in enabled(pre(E,i)))$}{
+                    add $p$ to $backtrack(pre(E,i))$ \;
+                }
+                \Else{add $enabled(pre(E,i))$ to $backtrack(pre(E,i))$ \;}
+            }
+        }
+        \If{$\exists p \in enabled(s)$}{
+            $backtrack(s) := {p}$ \;
+            \Let{$done = \emptyset$}
+            \While{$\exists p \in (backtrack(s) \backslash done)$}{
+               add $p$ to $done$ \;
+               \Let{$t = next(s,p)$} 
+                \Let{$E' = E.t$} 
+                \Let{$cu = max \{ C(i) \mid i \in 1.. | S |$ and $E_i$ dependent with $t \}$} 
+                \Let{$cu2 = cu [ p := | E' | ] $} 
+               \Let{$C' = C [p:= cu2, |E'| := cu2 ]$} 
+                $Explore(E',C')$ \;
+            }
+        }
+    }
+\end{algorithm}
+
+Ένα clock vector $C(p)$ συντηρείται καθόλη την εκτέλεση του αλγορίθμου για κάθε
+διεργασία $p$. Έτσι, το $C(p_i) = \langle c_1, c_2, ..., c_m \rangle$
+αντιπροσωπεύει το clock vector μιας διεργασίας $p_i$.
+όπου το $c_j$ είναι το  index της τελευταίας μετάβασης της διεργασίας $p_j$ για την οποία ισχύει ότι
+$c_j \rightarrow_s p_i$. Διαισθητικά, το clock vector μιας διεργασίας $p_j$ δίνει πληροφορία στη διεργασία $p_j$ σχετικά με την εκτέλεση των βημάτων των άλλων διεργασιών που 
+συμβαίνουν πριν από την εκτέλεση των βημάτων της $p_j$. Τα clock vectors βασίζονται στον αλγόριθμο του Lamport \cite{Lamport@CACM-89} και περισσότερες λεπτομέριες 
+σχετικά με τη χρήση τους μπορούν να βρεθούν εδώ \cite{FlanaganDPOR}. 
+Αντιπροσωπεύουμε την αρχική κατάσταση όλων των vector clocks ως $\bot = \langle 0, ..., 0 \rangle$. Με $C(p)(proc(E_i ))$ αντιπροσωπεύουμε την τιμή των 
+clock vector μίας διεργασίας $p$ για τη διεργασία στο i-οστό βήμα του $E$.
+
+Η αρχική κατάσταση του Classic-DPOR είναι μια κενή ακολουθία από γεγονότα και όλα τα vector clocks τίθενται σε $\bot$.
+
+Ο Classic-DPOR αποτελείται από δύο φάσεις. Η πρώτη φάση είναι η ανίχνευση races. Κατα τη διάρκεια αυτής της φάσης η επόμενη μετάβαση από όλες τις διεργασίες $p$ λαμβάνεται υπόψιν.
+Για κάθμε μια μετάβαση $next(s, p)$ (που μπορεί να είναι ενεργή ή όχι στο s), υπολογίζεται η τελευταία εξαρτόμενη με αυτή μετάβαση $i$ στο $E$.
+Ο υπολογισμός λαβμάνει χώρα στη γραμμή 4.
+Αν υπάρχει μια τέτοια μετάβαση $i$, ίσως υπάρχει και ένα race
+condition ή μία εξάρτηση μεταξύ $i$ και $next(s, p)$, και επομένως, ίσως θα πϱέπει να εισάγουμε ένα “backtracking point” στη θέση του 
+state $pre(S, i)$, δηλαδή στο state ακριβώς πριν την ετκέλεση της μετάβασης $i$. Αν $p$ είναι ενεργή διεργασία προστίθεται σαν backtrack point. Αλλιώς το σύνολο όλων των ενεργών 
+μεταβάσεων γίνεται backtracked.
+
+Κατά τη διάρκει της φάσης της εξερεύνησης η διεργασία $p$ που ανήκει στο $enabled(s)$ προστίθεται σαν backtrack point όπως και στον Source-DPOR. 
+Στη συνέχεια τα vector clocks ενημερώνονται σύμφωνα με τον αλγόριθμο του Lamport.
+
+\section{Σύγκριση μεταξύ Classic-DPOR και Source-DPOR}
+
+Όπως μπορούμε εύκολα να διαπιστώσουμε και οι δύο αλγόριθμοι αποτελούνται από τις δύο ίδιες διακριτές φάσεις το race detection και τη φάση της εξερεύνησης. Επιπλέον και οι 
+δύο αλγόριθμοι βασίζονται στα διανυσματικά ρολόγια, παρόλο που η χρήση τους απλώς υπονοείται στον Source-DPOR στις γραμμές 6 και 8 του Αλγορίθμου \ref{Source}.
+
+Η βασική διαφορά έγκειται στη φάση της ανίχνευσης race. Κατά τη διάρκεια αυτής της φάσης στον Classic-DPOR όλες οι διεργασίες $p$ λαμβάνονται υποψιν πριν δρομολογηθούν
+και έτσι πολλές από αυτές θα γίνουν backtrackede. Από την άλλη, στον Source-DPOR μόνο η τελευταία διεργασία που δρομολογήθηκε 
+λαμϐάνεται υπόψιν. Επιπλέον οι δύο αλγόριθμοι διαφέρουν στον τρόπο που αντιμετωπίζουν την περίπτωση της απουσίας ενεργών διεργασιών κατα τη διάρκει προσθήκης backtrack point.
+Σε αυτή την περίπτωση ο Classic-DPOR προσθέτει όλες της ενεργές διεργασίες ενώ καμία διεργασία δεν προστείθεται από τον Source-DPOR.
+Συνολικά, ο Source-DPOR εκμεταλλέυεται τα Clock vectors περισσότερο από τον Classic-DPOR.
+
+\section{Συνδιάζοντας Classic-DPOR και Source-DPOR}
+
+Προκειμένου να εκμεταλλευτούμε την υποδομή του Nidhugg ο Αλγόριθμος \ref{NDPOR} θα χρησιμποιηθεί. Σαν αποτέλεσμα δεν υπάρχει ανάγκη να προσθέσουμε όλα τα διαθέσεμα
+threads όταν το $p$ δεν είναι ενεργό. Αν δεν έχει βρεθεί κατάλληλος υποψήφιος τότε
+ένας υποψήφιος που προτείνεται από τον αντίστοιχ Source-DPOR αλγόριθμο θα προστεθεί. Αυτός ο τρόπος υπολογισμού persistent sets θεωρείται πιο πολύπλοκος και επομένω
+κακή επιλογή \cite{Gode05}. Παρολ᾽ αυτά η χρήση source sets είναι πιο κοντά σε αυτή την προσέγγιση.
+
+\begin{algorithm}
+    \caption{Nidhugg-DPOR}
+    \label{NDPOR}
+    \SetKwInOut{Input}{input}
+    \SetKwHangingKw{Let}{let}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep$}{
+            backtrack(E) $:={p}$ \;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \Let{$CI = \{ i \in I_{E'}(u) \mid i \rightarrow p \}$}
+                    \If{$CI \cap backtrack(E') = \emptyset$}{
+                        \If{$CI \neq \emptyset$}{
+                            add some $q' \in CI \text{ to } backtrack(E') $ \;
+                        }
+                        \Else{add some $q' I_{E'}(u) \text{ to } backtrack(E')$}
+                    }
+                }
+                \Let{ $Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $ } 
+                $Explore(E.p, Sleep)$ \;
+                add $p$ to $Sleep$ \;
+            }
+        }
+    }
+\end{algorithm}
+
+Ο Αλγόριθμος \ref{NDPOR} διαφέρει από τον Source-DPOR (Αλγ. \ref{Source}) στον υπολογισμό των initials.
+Συγκεκριμένα ένα υποσύνολο των initials ($CI$) που συμβαίνει πριν από το $p$ χρησιμοποιείται. Διαισθητικά στην περίπτωηση του εγγραφέα και 
+των δύο αναγνωστών και οι δύο αναγνώστες θα προστεθούν στο backtrack καθώς ο πρώτος αναγνώστης δε συμβαίνει πριν από τον δεύτερο.
+Για να γενικέυσουμε την ιδέα: 
+Το Nidhugg δεν μας επιτρέπει να δημιουργήσουμε διακλαδώσει για το $last(E)$, κατα τη διάρκεια της φάσης της δρομολόγησης. Οι διακλαδώσεις προστίθενται αργότερα
+στον Source-DPOR (Αλγ. \ref{Source}). Όταν ένα race εξετάζεται συνήθως μόνο ένα thread που προκαλέι το race Θα προστεθεί καθώς το $CI$ περιέχει αυτό 
+το thread μόνο.
+
+Θα δώσουμε μια διαισθητική απόδειξη σχετικά με την ορθότητα του Nidhugg-DPOR στον να υπολογίζει persistent set και θα 
+εξηγήσουμε γιατί όταν ο αλγόριθμος τελειώσει ένα persistent θα έχει υπολογιστεί σε κάθε βήμα. Το ενδιαφέρον κομμάτι είναι να δείξουμε ότι για καθε διακλάδωση που
+είναι μια εντολή εγγραφής όλες οι διεργασίες που συγκρούονται με την εντολή και μπορούν να συμβούν ταυτόχρονα με αυτή θα προστεθούν στο σύνολο των διακλαδώσεων.
+
+Ας υποθέσουμε δύο διεργασίες που βρίσκονται σε race στο $last(S)$.
+\begin{itemize}
+
+\item Περίπτωση 1: τουλάχιστον μία διεργασία περιέχει μια εντολή εγγραφής. Ξέρουμε ότι οι δύο διεργασίες θα πρέπει να αντιστραφούν σε κάποιο σημείο.
+Από τη στιγμή που ο Nidhugg-DPOR αγνοεί τα weak initials θα προσθέσει και τις δύο διεργασίες. Στο Figure \ref{Construction of persistent
+sets in Nidhugg when there is a write process} παρατηρούμε ότι οι διεργασίες $q$ και $r$ αντιστρέφονται. Στον Source-DPOR 
+μόνο μία από τις διεργασίες πρέπει να χρησιμποιηθοεί για να γίνει διακλάδωση καθώς μοιράζονται τα ίδια initials. 
+Παρολ᾽ αυτά στον Nidhugg-DPOR αυτό δεν ισχύει καθώς το $CI$ δεν περιέχει βήματα από τις άλλες διεργασίες.
+
+\trace{nidhuggpersistent1.pdf}{Construction of persistent sets in Nidhugg when there is a write process}
+
+\item Case 2: και οι δύο διεργασίες είναι αναγνώστες.
+Αφού δεν υπολογίζουμε το $I$ αλλά το $CI$ η πρώτη ανάγνωση δε θα ληφθεί υπόψιν καθώς δε συμβαίνει πριν από την δεύτερη ανάγνωση και σαν αποτέλεσμα και οι δύο διεργασίες
+θα προστεθούν στο $backtrack$. Στο Figure \ref{Construction of persistent sets in Nidhugg when both are read processes} παρατηρούμε ότι στον υπολογισμό του $CI$ 
+όταν το race μεταξύ των $p$ και $r$ εντοπίζεται η $q$ αγνοείται και, επομένως, το $r$ θα προστεθεί για να γίνει διακλάδωση.
+
+\trace{nidhuggpersistent.pdf}{Construction of persistent sets in Nidhugg when both are read processes}
+
+\end{itemize}
+
+Είναι σαφές ότι καμία διεργασίε που δεν ανήκει στο $backtrack(S)$ δεν έχει ανταγωνισμό με το τις διεργασίες στο $backtrack(S)$. 

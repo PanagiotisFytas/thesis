@@ -1,0 +1,280 @@
+\chapter{Preliminaries}
+\label{sec:background}
+
+\section{The Erlang Language}
+
+Erlang is a declarative programming language with built-in support for concurrency,
+distribution, fault-tolerance, on-the-fly code reloading and automatic memory management. 
+Erlang was initially developed by Ericsson in 1986 with the purpose of programming
+industrial telecommunications systems. However, it was later realized that
+it was also suitable for soft real-time applications \cite{Armstrong:1996:CPE:229883}.
+In 1998, Erlang/OTP (Open Telecom Platform) was released as open source and since then has been used
+commercially by various companies, including Ericsson, for a wide variety of large-scale applications.
+
+\subsection{Concurrent Erlang}
+
+The main strength of Erlang stems from its built-in concurrency support. In the core of this 
+are the lightweight Erlang processes, each having its own program counter, (local ???) variables and call stack.
+Additionally, Erlang implements its processes through the runtime system of BEAM (the VM of Erlang)
+and therefore they are not mapped to OS threads. These processes use minimal memory, can be task switched extremely fast, 
+can run in parallel and thousands of them can exist in a single machine.
+A process is identified globally by its Pid (process identifier).
+
+Erlang concurrency is mainly based on message passing, since the state of Erlang processes is 
+(``mostly") not shared. As such, the operator $``!"$ can be used to asynchronously send messages between processes,
+which can be of any datatype. The message is placed on the ``mailbox" (a message queue) of the receiving process, 
+until it is extracted by a \textit{receive} 
+expression. The \textit{receive} expression uses pattern matching to scan the mailbox in a FIFO order 
+for a message that matches that pattern. If no such message is found, the receiving process is blocked at the \textit{receive},
+waiting for a new message to be sent or for a timeout to occur, in case the \textit{receive} expression had an \textit{after} part.
+
+Starting a process can be done efficiently through the BIF (built-in function) (\textit{spawn/1})
+(and its variants).
+By calling this function a new concurrent erlang process is created in order to evaluate the function
+specified at the arguments of \textit{spawn}. The Pid of this new process is the return value of the \textit{spawn}
+function.
+
+It is often claimed that Erlang has no shared memory between different processes \cite{Armstrong:2007:PES:1403889}
+and inter-process communication is solely based on
+message passing. However, that is not entirely true since it is possible for different processes to
+access the same memory through the ETS (Erlang Term Storage) module.
+
+\subsection{Distributed Erlang}
+
+An Erlang node is an Erlang runtime system containing a complete virtual machine which contains its
+own address space and set of processes \cite{Armstrong:2007:PES:1403889}. A node is assigned to a name of
+the form ``name@host". Erlang nodes can connect with each other using cookies and they can communicate
+over the network. Pids continue to be unique over different nodes(globally). However, inside
+two different nodes, two different processes can have the same local Pid.
+
+Distributed Erlang Programs can run on different nodes. An Erlang process can be spawned on any 
+node, local or remote. All primitives ($``!"$, \textit{receive}, etc.) operate over the network similarly as they
+would on the same node. Pid conflicts are avoided by using the global PIDs on operations
+that occur over the network (askme ???).
+
+\section{Testing Concurrent Programs}
+
+Testing a concurrent program is significantly more challenging than testing a sequential one.
+The main reason behind this increased difficulty, is the non-deterministic way in which processes and
+threads are scheduled by computers. On a given input, a concurrent program may lead to different 
+results depending on how its processes were scheduled. Specifically, errors can exist only on particular
+interleavings, that may have a small probability of occurring, making normal testing methods ineffective in
+detecting the existence of such bugs. Therefore, in order to verify and test (???) concurrent programs it is
+essential that all possible interleavings are explored. \textit{Model Checking} does this by exploring the
+complete state space of a program. In realistic scenarios, this approach is extremely inefficient, since
+storing the state of each process can have extreme memory requirements \cite{Godefroid:1997:MCP:263699.263717}.
+\textit{Stateless Model
+Checking} solves this issue by using a run-time scheduler to navigate the complete (reachable) state space 
+without storing
+the actual state of the processes. Nevertheless, the number of possible interleavings increases
+exponentially with the length of the program and therefore, this method suffers from combinatorial explosion.
+
+However, the complete set of possible interleavings does not need to be explored, since different
+interleavings can be equivalent, as long as they can be obtained from each other by reordering adjacent, independent execution steps. 
+Such interleavings belong to the same \textit{Mazurkiewicz trace} \cite{10.1007/3-540-17906-2_30}.
+As a result, only a single interleaving from each different Mazurkiewicz trace needs to be examined in order
+to sufficiently test a program. This observation is utilized by various \textit{Partial Order Reduction} (POR) \cite{Godefroid1996, POR, 
+10.1007/3-540-53863-1_36}
+techniques, which examine at least one interleaving from different Mazurkiewicz traces in order to alleviate 
+the state space explosion that occurs when testing larger programs (??? askme).
+
+POR algorithms try to avoid exploring redundant interleavings by maintaining information regarding potential races between different processes. 
+Such information can either be gained by \textit{statically} analyzing the code of the program \cite{Static1997},
+or by \textit{dynamically} detecting dependencies during the runtime of the program \cite{FlanaganDPOR}. \textit{Dynamic 
+Partial Order Reduction} (DPOR) utilizes the latter technique and generally outperforms static POR,
+since static information can be imprecise, which can lead to ineffective reduction of the state space.
+
+Still, most DPOR techniques, fail to always guarantee that an optimal amount of interleavings gets fully explored (only one 
+interleaving from each Mazurkiewicz trace), 
+even when coupled with other reduction techniques, such as \textit{sleep sets} \cite{Godefroid1996}. Redundant exploration
+can be reduced by using variations, such as source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014}, or even altogether avoided, through optimal-DPOR 
+\cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+
+\section{Framework}
+
+Here we present the abstractions that we use to model concurrent systems as well as the relations that
+occur in such a system \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+
+\subsection{Abstraction Model}
+
+Our abstraction system assumes concurrent programs have a finite amount of processes and that
+the code executed is deterministic (????). Additionally, the state space of the program does not
+contain cycles and all execution sequences are considered to be finite (this does not exclude
+execution sequences which are blocked due to a deadlock).
+
+The complete execution of a process $p$ (also refered to as an actor process) splits into different execution steps, which are to be 
+executed atomically. Each step combines a singular global statement along with the local statements
+(that do not have any explicit affect on the state of other processes) that take place before the next
+global statement. This acts as an optimization by reducing the total execution steps that can be
+interleaved and subsequently, the amount of interleavings that are to be examined \cite{Godefroid:1997:MCP:263699.263717}. 
+
+We use $\Sigma$ to denote the set of global states ($s\in\Sigma$) and $s_0$ to 
+denote the unique initial state. If a process cannot continue, the execution 
+of the processes is considered to $block$ in a state $s$.
+An execution sequence $E$ of a system is a finite sequence of
+execution steps of its processes that is performed from $s_0$. Since each execution step is 
+deterministic, an execution sequence $E$ is uniquely characterized by the sequence of processes
+that perform steps in $E$. For instance, $p.p.q$ denotes the execution
+sequence where first $p$ performs two steps, followed by a step of $q$.
+The sequence of processes that perform steps in $E$ also uniquely
+determines the global state of the system after $E$, which is denoted as
+$s_{[E]}$. For a state $s$, let $enabled(s)$ denote the set of processes $p$ that
+are enabled in $s$ (i.e., for which execute $p(s)$ is defined). We use $.$ to
+denote concatenation of sequences of processes. Thus, if $p$ is not
+blocked after $E$, then $E.p$ is an execution sequence.
+
+An $event$ of $E$ is a particular occurrence of a process in $E$.
+We use $\langle p,i \rangle$ to denote the $i_{th}$ event of process $p$ in the execution
+sequence $E$. In other words, the event $\langle p,i \rangle$ is the $i_{th}$ execution step
+of process $p$ in the execution sequence $E$. We use $dom(E)$ to denote
+the set of events $\langle p,i \rangle$ which are in $E$, i.e., $\langle p,i \rangle \in dom(E)$ iff $E$
+contains at least $i$ steps of $p$. We will use $e,e',...$ , to range over
+events. We use $proc(e)$ to denote the process $p$ of an event $e = \langle p, i \rangle$.
+If $E.w$ is an execution sequence, obtained by concatenating $E$ and
+$w$, then $dom_{[E]}(w)$ denotes $dom(E.w) \ dom(E)$, i.e., the events in
+$E.w$ which are in $w$. As a special case, we use $next_{[E]}(p)$ to denote
+$dom_{[E]}(p)$.
+The notation $<_E$ is used to denote the total order between events in $E$, i.e.
+$e <_E e'$  denotes that $e$ occurs before $e'$  in $E$. We use $E'\leq E$ to
+denote that the sequence $E'$ is a prefix of the sequence $E$.
+
+\subsection{Event Dependencies}
+
+Here we denote the happens-before relation between two events in an execution sequence $E$,
+a vital concept in DPOR algorithms, by using the notation $\rightarrow_E$. 
+Specifically, the relation $e\rightarrow_Ee'$, where events $e,e'$ are in $dom(E)$,
+means that $e$ ``happens-before" $e'$ in the execution sequence $E$.
+The DPOR algorithms presented here use the $happens$-$before$ $assignment$, which is a function that 
+assigns such a ``happens-before" relation to events in any execution sequence. 
+Usually, such a function is implemented using $vector$ $clocks$ \cite{Mattern88virtualtime}
+to create relations concerning accesses to the same variables or sending and receiving
+the same message.
+
+\begin{definition}{(Happens-Before Assignment)}\\
+    A happens-before assignment, which assigns a
+    unique happens-before relation $\rightarrow_E$ to any execution sequence
+    $E$, is valid if it satisfies the following properties for all execution
+    sequences $E$.
+    \begin{enumerate}
+        \item $\rightarrow_{E}$ is a partial order on $dom(E)$, which is included in $<_E$.
+        \item The execution steps of each process are totally ordered, i.e., 
+        $\langle p,i \rangle \rightarrow_E \langle p,i+1 \rangle$ whenever $\langle p, i+1 \rangle \in dom(E)$.
+        \item If $E'$ is a prefix of $E$ then $\rightarrow_E$ and $\rightarrow_{E'}$ are the same on $dom(E')$.
+        \item Any linearization $E'$ of $\rightarrow_E$ on $dom(E)$ is an execution sequence which has exactly the same “happens-before” relation
+$\rightarrow_{E'}$ as $\rightarrow_E$. This means that the relation $\rightarrow_E$ induces a set
+of equivalent execution sequences, all with the same “happens-before” relation. 
+We use $E \simeq E'$ to denote that $E$ and $E'$ are
+linearizations of the same “happens-before” relation, and $[E]_{\simeq}$ 
+to denote the equivalence class of E.
+    \item If $E \simeq E'$ then $s_{[E]} = s_{[E']}$ (i.e., two equivalent traces will lead to the same state).
+    \item For any sequences $E, E'$ and $w$, such that $E.w$ is an execution
+sequence, we have $E \simeq E'$  if and only if $E.w \simeq' E'.w$.
+    \item If $p$, $q$ and $r$ are different processes, then
+    if $next_{[E]}(P) \rightarrow_{E.p.r} next_{[E.p]}(r)$ and $next_{[E]}(p) \not\rightarrow_{E..p.q} next_{[E.p]}(q)$, then
+    $next_{[E]}(p) \rightarrow_{E.p.q.r} next_{[E.p.q]}(r)$.
+    \end{enumerate}
+\end{definition}
+
+For the happens-before relations that concern us the first six properties 
+are fairly obvious. As far as the seventh property is concerned,
+if the next step of $p$ happens before the next step
+of $r$ after the sequence $E$, then the step of $p$ still happens before
+the step of $r$ even when some step of another process, which is not
+dependent with $p$, is inserted between $p$ and $r$. This property is true
+in most practical computation models, such as the message passing and shared
+memory systems that concern us.
+As a special case, properties 4 and 5 together imply that if we have two consecutive events 
+$e$ and $e'$ in E, such as that $e \not \rightarrow_{E} e'$, then they can
+be swapped without affecting the global state after the two events have occured.
+
+\subsection{Independence and Races}
+
+Here we define the concept of independence between events of a computation. If
+$E.p$ and $E.w$ are two execution sequences, then $E \models p\diamondsuit w$ denotes
+that $E.p.w$ is also an execution sequence such that $next_{[E]}(p) \not \rightarrow_{E.p.w} e$
+for any $e \in dom_{[E.p]}(w)$. To elaborate, $E \models p \diamondsuit w$ means that
+the next event of $p$ would not “happen before” any event in $w$
+in the execution sequence $E.p.w$. Simply, this notation states that $p$ is
+independent with $w$ after $E$. In the special case when $w$ contains
+only one process $q$, then $E \models p \diamondsuit q$ denotes that the next steps of
+$p$ and $q$ are independent after $E$. We use $E \not \models p \diamondsuit w$ to denote that
+$E\models p \diamondsuit w$ does not hold.
+
+
+We use the notation $w \backslash p$, where $w$ is a sequence and $p \in w$, to denote the sequence
+$w$ with its first occurrence of $p$ removed, and $w \upharpoonright p$ to denote the
+prefix of w up to but not including the first occurrence of $p$. 
+Considering an execution sequence $E$ and an event $e \in  dom(E)$, we use $pre(E,e)$
+to denote the prefix of $E$ up to, but not including, the event $e$. We also use 
+the notation $notdep(e, E)$ to refer to the 
+sub-sequence of $E$ consisting of the events that occur after $e$ but do
+not “happen after” $e$ (i.e., the events $e'$ that occur after $e$ such that
+$e \not \rightarrow_E e'$).
+
+Intuitively, two events, $e$ and $e'$ in an execution sequence $E$, where
+$e$ occurs before $e'$ in $E$, are in a race if
+\begin{itemize}
+\item $e$ happens-before $e'$ in $E$, and
+\item $e$ and $e'$ are “concurrent”, i.e., there is an equivalent execution
+sequence $E' \simeq E$ in which $e$ and $e'$ are adjacent.
+\end{itemize}
+We use the notation $e \lessdot_E e'$ to denote that events $e$ and $e'$ are in a race, 
+or more formally, that $proc(e) \not = proc(e')$, that $e \rightarrow_E e'$,
+and that there is no event $e'' \in dom(E)$, different from $e'$ and $e$,
+such that $e \rightarrow_E e'' \rightarrow_E e'$.
+
+Let $e \lesssim_E e'$ denote
+that $e \lessdot_E e'$, and that the race can be reversed. Formally, if $E' \lesssim E$
+and $e$ occurs immediately before $e'$ in $E'$, then $proc(e')$ was not
+blocked before the occurrence of $e$. This concept is useful, because 
+whenever a DPOR algorithm detects a race, it will check
+whether the events in the race can be executed in the reverse order.
+Since the events are related by the happens-before relation, this may
+lead to a different global state and therefore the algorithm must try to
+explore a corresponding execution sequence.
+
+\section{Concuerror Overview}
+
+Concuerror \cite{6569727, Gotovos:2011:TDC:2034654.2034664} is a tool that uses various stateless model 
+checking techniques in order to systematically 
+test an Erlang program, with the aim of detecting and reporting concurrency-related runtime errors.
+Specifically, Concuerror navigates the state space of a program, under a given test suite with a specified input,
+to check whether certain errors occur in specific interleavings or verify the absence of any errors. Such errors include abnormal process exits, uncaught
+exceptions, assertion violations and deadlocks. Concuerror's functionality can be mainly described through its main components:
+the Instrumenter, the Scheduler and the Logger. 
+
+\subsection{Instrumenter}
+
+Concuerror instruments the code of a program without having to make modification to the Erlang VM. Instead, it
+utilizes a source to source translation that adds preemptions points to various points in the code of a program.
+When the execution of a program reaches a preemption point, the process will yield its execution by blocking
+on a receive statement, until a continuation message is sent from the Scheduler.
+
+This makes it possible to control how the processes of a program are scheduled and therefore, recreate a specific
+interleaving. Moreover, this allows for the modification of specific BIFs that interact with the global
+state of a program, by inserting a preemption point before such function calls and controlling their execution.
+
+\subsection{Scheduler}
+
+In order to explore the complete state space of a concurrent program, it is vital that we are able to 
+``force" specific schedulings (interleavings) of its processes. The Scheduler is responsible for controlling 
+the execution of the processes to produce the required interleavings and at the same time
+check for and handle possible errors that may occur.
+
+The scheduler is also responsible for determining which interleavings are to be checked. This is done
+by implementing various DPOR algorithms (persistent-DPOR, source-DPOR, optimal-DPOR). The default
+algorithm currently used by Concuerror is optimal-DPOR. 
+However, the user can specify the technique that Concuerror will use to search the state space, through the -{}-$dpor$ option.
+
+The functionality of the Scheduler can be divided into two main parts: \textit{the exploration phase} and
+the \textit{planning phase} (in accordance to most DPOR algorithms, as described in Chapter \ref{dpor}).
+The planning phase is responsible for determining which interleavings need to be explored and the
+exploration phase is responsible for producing those interleavings.
+
+\subsection{Logger}
+
+Testing programs is useless without providing the user with information on how an error was produced. This is
+the responsibility of the Logger. During its execution, the Scheduler logs information regarding the explored interleavings. 
+The Logger is responsible for compiling that information in order to print the trace of a scheduling that led to a
+potential error. At the same time, when used in developer mode, the Logger is essential for providing debugging 
+information to Concuerror developers.

@@ -1,0 +1,17 @@
+Add notion of interleavings
+Add example of equivalent interleavings
+
+Delay bounded?
+
+What's transition
+What's state
+
+Examples of I and WI
+
+dom(E)
+final(E)
+E ⊢ t♢w
+W ⊆ E(s)
+<_E
+<p,i>
+

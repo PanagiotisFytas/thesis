@@ -1,0 +1,287 @@
+\chapter{Υλοποιήσεις Αλγορίθμων}
+\label{implementations}
+
+Το Nidhugg είναι εργαλείο εντοπισμού σφαλμάτων που στοχεύει στην ανεύρεση σφαλμάτων που προκύπτουν από το μη ντετερμινισμό του δρομολογιτή
+και σε λάθη που προκύπτουν από τα μοντέλα χαλαρής μνήμης.
+Δουλεύει στο επίπεδο της ενδιαμέσης αναπαράστασης του LLVM, που σημαίνει ότι μπορεί να χρησιμοποιηθεί για προγράμματα που είναι γραμμένα
+σε C και C++ ή γλώσσες που μπορούν να γίνουν compile σε LLVM και υλοποιούν τον ταυτοχρονισμό χρησιμοποιώντας τη βιβλιοθήκη pthreads.
+
+Τη στιγμή που γραφόταν η παρούσα διπλωματική το Nidhugg υποστήριζε τα μοντέλα SC, TSO, PSO and POWER. 
+Από την άλλη το Nidhugg δεν μπορεί να χειριστεί τον μη ντετερμινισμό των δεδομένων γι αυτό τα threads θα πρέπει να είναι ντετερμινιστικά 
+όταν τρέχουν σε απομόνωση.
+
+\section{Η Ροή Προγράμματος του Nidhugg}
+
+Το Nidhugg δουλεέυι στο επίπεδο της ενδιάμεσης αναπαράστασης του LLVM (IR). Προκειμένου το Nidhugg να βρέι ένα σφάλμα δημιουργεί
+ένα διερμηνέα LLVM assembly.
+Στη συνέχεια δρομολογεί και εκτελεί διαφορετικα traces μέχρι ένα σφάλμα να βρεθεί όπως η παραβίαση ενός assertion. 
+Τα traces παίζουν ένα σημαντικό ρόλο στο Nidhugg καθώς αναπαριστούν τα διαφορετικά schedulings.
+Αυτά τα traces αντιπροσωπεύονται ως vectors από Events objects. Το Event object συντηρεί όλη την χρήσιμή πληροφορία σχετικά με
+ένα event όπως το pid του thread που εκτελέστηκε. Οι διακλαδώσεις που προκαλούν την εξερεύνηση διαφορετικών δρομολογήσεων
+αποθηκεύονται επίσης στο Event object. Οι δρομολογήσεις ρυθμίζονται από το Tracebuilder object με τη σειρά του καθορίζεται από
+το memory model που χρησιμοποιείται. Ο Tracebuilder είναι επίσης υπεύθυνος για τον ανεύρεση races μεταξύ των διαφόρων threads και τις προσβάσεις
+στη μνήμη.
+
+Η εκτέλεση ακολουθεί γενικά τη ροή που παρουσιάζεται στο Figure \ref{Nidhugg's Flow Chart}. Όπως βλέπουμε και στο διάγραμμα
+ροή ο TraceBuilder προσπαθεί να δρομολογήσει καινούρια γεγονότα με τη χρήση της schedule(). 
+Μετά τη δρομολόγηση τα γεγονότα εκτελούνται και ενημερώνονται τα διανυσματικά ρολόγια. Στη συνέχεια ελέγχεται 
+αν κάποιο γεγονός είναι εξαρτόμενο από κάποιο άλλο, δηλαδή, προσπελαύνει κάποια τοποθεσία της μνήμης που ανήκει και στο
+άλλο. Μετά από αυτό το Niddhugg προσπαθεί να προσθέσει διακλαδώσεις και να ελέγξει αν υπάρχει κάποιο σφάλμα.
+Στην περίπτωση σφάλματος ο χρήστης ενημερώνεται και η διαδικασία τερματίζει.  
+Αξίζει να σημειωθεί ότι υπάρχει επιλογή η εξερεύνηση να συνεχίσει ώστε να βρεθούν περισσότερα λάϑη. 
+Αν στο τέλος μιας δρομολόγησης δεν έχει βρεθεί κάποιο λάθος ο TraceBuilder κάνει reset στην πιο κοντινή 
+διακλάδωση και συνεχίζει την εξερεύνηση. Αν δεν υπάρχουν άλλες διαθέσιμες διακλαδώσεις, η εξερεύνηση τερματίζει.
+
+Σε ό,τι αφορά του αλγορίθμους που υλοποιήθηκαν είναι ξεκάθαραο ότι το πιο σημαντικό κομμάτι του διαγράμματος ροής είναι ο εντοπισμός εξαρτήσεων.
+
+\mediumGraph{flowchartv2.pdf}{Nidhugg's Flow Chart}
+
+\section{Προσθήκη διακλαδώσεων στο Nidhugg}
+
+Μόλις δρομολογηθεί μια εντολή που πιθανώς να προκαλέσει σφάλμα το διάνυσμα see\_accesses δημιουργείται και περιλαμβάνει όλες τις προσπελάσεις 
+που λαμϐανουν χώρα στη ίδια θέση στη μνήμη και καλείται η διαδικασία \verb|see_events()|.
+
+\begin{algorithm}
+    \caption{see\_events()}
+    \Fn{$see\_events(seen\_access)$}{
+        $branches := seen\_access - \{ a \in seen\_access \mid a  \rightarrow last(E)$ or $\exists a' \in seen\_access$ which happens after $ a \}$ \;
+        $update\_clocks()$ \;
+        \ForEach{$b \in  branches $}{
+            $add\_branch(b)$ \;
+        }
+     }
+\end{algorithm}
+
+Είναι σαφές από τον αλγόριθμο ότι ο σκοπός της συνάρτησης είναι εξαιρέσει όλες εκείνες τις προσβάσεις στη μνήμη που δεν είναι σε
+race με την συγκεκριμένη πρόσβαση δηλαδή εξαρτήσεις που δεν μπορούν να αναπαρασταθούν
+σαν traces στα οποία δεν υπάρχουν άλλα γεγονότα που να συμβαίνουν μεταξύ τους.
+Είναι σημαντικό να ξεκαθαρίσουμε ότι αυτό δε σημαίνει ότι τα γεγονότα δεν μπορούν να είναι ταυτόχρονα σε κάποια άλλη δρομολόγηση.
+Τα γεγονότα που επιβίωσαν της διαδικασίς προστίθενται σε ένα πίνακα ο οποίος χρησιμοποιείται από την συνάρτηση \verb|add_branch()|.
+
+Μία άλλη λειτουργία της \verb|see_events()| είναι η ενημέρωση των vector clocks. Μετά το τέλος της ρουτίνας για δύο γεγονότα που είναι ταυτόχρονα
+τα διανυσματικά ρολόγια θα έχουν ενημερωθεί ώστε να φαίνεται η σχέση-πριν (happens-before relation).
+
+H συνάρτηση \verb|add_branch()| φαίνεται στον αλγόριθμο \ref{add_branch} είναι η πιο σημαντική στην υποδομή του Nidhugg.
+
+\begin{algorithm}
+    \caption{add\_branch()}
+    \label{add_branch}
+    \Fn{add\_branch($b$)}{
+        $candidates$ = $\emptyset$ \;
+        $lc := null$ \;
+        $E' := E \text{ starting from } next(b)$ \; 
+        \ForEach{$e \in dom(E')$}{
+            \If{$b \rightarrow e$ or $\exists c \in candidates : c \rightarrow e $}{
+                continue \;
+            }
+
+            $lc := e.pid$\;
+            \If{$lc \in candidates$}{
+                continue \;
+            }
+
+            \If{$e.pid \in backtrack(b)$ or $e.pid \in sleep\_set$}{
+                    return \;
+            }
+            $candidates := candidates \cup lc$ \;
+        }
+        $backtrack(b) := backtrack(b) \cup lc $ \;
+    }
+\end{algorithm}
+
+Διαισθητικά, η add\_branch κάνει τα ακόλουθα: Ξεκινώντας από ένα γεγονός που έχει conflict με το πιο πρόσφατα δρομολογημένο γεγονός,
+ξεκινά να διανύει το διάνυσμα που αντιπροσωπεύει το $E$ μέχρι το κοντινότερο στο τέλος του trace, thread βρεθεί (αν
+αυτό είναι δυνατό). Στην πραγματικότητα αυτό που συμβαίνει είναι ο υπολογισμός των $I$ (initials). Όπως φαίνεται και από τον
+αλγόριθμο αν έχει ήδη τοποθετηθεί μια κατάλληλη διακλάδωση ή μια κατάλληλη διακλάδωση είναι στο sleep set η διαδικασία 
+τερματίζει.
+
+Το αποτέλεσμα της \verb|add_branch()| είναι ο υπολογισμός ενός source set.
+
+\section{Υλοποίηση του Nidhugg-DPOR}
+
+Η υλοποίηση των persistent sets βασίζεται στην ήδη υλοποιημένη υποδομή των vector clocks.
+Συγκεκριμένα η \verb|include()| συνάρτηση των vector clocks μας επιτρέπει να καθορίσουμε αν υπάρχουν σχέσεις $i \rightarrow p$. 
+    Ο αλγόριθμος που αυτή υλοποιεί \verb|includes()| δίνεται στον Αλγόριθμο \ref{include routine}. Ακολουθώντας τον συμβολισμό του Source-DPOR το $\langle e,
+i \rangle$ είναι ένα ήδη δρομολογημένο γεγονός και είναι το  i-οστό βήμα της διεργασίας $e$ και το $p$ είναι το πιο πρόσφατα backtracked
+γεγονότ της διεργασίας $p$. 
+
+\begin{algorithm}
+    \caption{includes() routine}
+    \label{include routine}
+    \Fn{includes($ \langle e, i \rangle$, p)}{
+        return $i \leq p.clock[e]$
+    }
+\end{algorithm}
+
+Για να υπολογίσουμε το $CI$ χρειάζεται απλλά να προλάβουμε την \verb|add\_branch()| από το να απορρίψει διακλαδώσει λόγω thread  που ανήκουν στο 
+$I$ και όχι στο $CI$. Η αλλαγές που έγιναν δίνονται παρακάτω στον Αλγόριθμο \ref{addbranch
+routine for persistent sets}.
+
+\begin{algorithm}
+    \caption{add\_branch() for persistent sets}
+    \label{addbranch routine for persistent sets}
+    \Fn{add\_branch($b$)}{
+        $candidates = \emptyset$ \;
+        $lc = null$
+        $E'$ := $E text{starting from} next(b)$ \; 
+        \ForEach{$e in dom(E')$}{
+            \If{$b \rightarrow e \text{ or } \exists c \in candidates \mid c \rightarrow e $}{
+                continue \;
+            }
+
+            \If{$e \rightarrow last(E)$}{
+                $lpc := e.pid$\;
+            }
+
+            $lc := e.pid$\;
+
+            \If{$e.pid \in backtrack(b) or e.pid \in sleep\_set(b)$}{
+                \If{$lc \rightarrow last(E)$}{
+                    return \;
+                }
+            }
+        }
+        \If{$lpc$}{
+            $backtrack(b) := backtrack(b) \cup lpc $
+        }
+        \Else{$backtrack(b) := backtrack(b) \cup lc $}
+    }
+\end{algorithm}
+
+Στην περίπτωση που το E είναι κενό μπορούμε να χρησιμοποιήσουμε έναν υποψήφιο που υποδείχτηκε από το $I$.
+
+\section{Υλοποίηση του Naive-BPOR}
+
+Το πρώτο που πρέπει να υλοποιήσουμε για κάθε bounding technique είναι ένα μετρητής του bound count. Στην περίπτωση 
+μας ένα μετρητής που θα μας δίνει πόσα preemptive switces έχουν συμβεί στο trace.
+
+Πρέπει να είμαστε σε θέση να καταλάβουμε πότε ένα thread είναι ενεργό. Αυτήν την πληροφορία μπορούμε να την πάρουμε
+από παλαιότερες τιμές του ίδιου του bound count.
+Δοθέντων δύο διαδοχικών γεγονότων $a,b$, αν $a.bound\_count < b.bound\_count$ τότε $a$ ήταν διαθέσιμο.
+
+Ο ψευδοκώδικας δίνεται στον Αλγόριθμο \ref{Should we increase the bound count?}.
+
+\begin{algorithm}
+    \caption{Should we increase the bound count?}
+    \label{Should we increase the bound count?}
+    \Let{$i =\text{the most recent branching point} $}
+    $bound\_count := prefix[i].bound\_count$  \;
+    \If{$i>0$}{
+        \If{$prefix[i].id == prefix[i-1].id$}{
+            $prefix[i].bound\_count = ++bound\_count$\;
+        }
+        \Else{
+            $prefix[i].bound\_count = bound\_count$ \;
+        }
+    }
+
+\end{algorithm}
+
+
+Προκειμένου να μπορέσουμε να επιβεβαιώσουμε την επιβεβαίωση της σωστής μέτρηση του bound count, το debug print του Nidhugg τροποποιήθηκε κατάλληλα.
+Έτσι ο μετρητής πρέπει να δουλεύει όπως φαίνεται στο Listing \ref{Example of bound counter}.
+
+\Output{./code/bound_count.out}{Example of bound counter}
+
+Το Nidhugg αναμένει τα traces να μπλοκάρονται μόνο λόγω sleep sets. Έτσι έπρεπε να γίνουν οι κατάλληλες αλλαγές ώστε να γνωρίζουμε 
+το λόγο που δρομολόγηση σταμάτησε. Συγκεκριμένα προστέθηκαν flags στην συνάρτηση \verb|schedule()| γι αυτό το σκοπό.
+
+Το αποτέλεσμα μετά την εκτέλεση του προγράμματος φαίνεται στο Listing \ref{Naive-BPOR output}.
+
+\Output{./code/vanilla_output.out}{Naive-BPOR output}
+
+Μια αλλαγή που πρέπει να κάνουμε είναι να αλλάξουμε τη προτεραιότητα με την οποία δρομολογούνται τα threads. Το Nidhugg
+δρομολογεί τα threads δίνοντας προτεραιότητα στο παλαίοτερο. Έτσι μόλις ένα παλιό thread ξυπνήσει θα δρομολογηθεί αμέσως.
+Με αποτέλεσμα να αυξηθεί το preemption count. Επομένως πρεπει να αλλάξουμε την προτεραίοτητα δρομολόγησης ώστε να 
+προηγείται πάντα το thread που έτρεχε προηγούμενως ώστε να αποφύγουμε αυξήσεις του bound count.
+
+\trace{w2rscheduling.pdf}{Execution without the scheduling optimization}
+
+Στο Figure \ref{Execution without the scheduling optimization} δίνεται ένα παράδειγμα με δύο threads να διαβάζουν μια μεταβλητή και 
+ενα να τη γράφει. Όπως φαίνεται και στην εικόνα όταν το $p$ ξυπνά λόγω του conflict τότε δρομολογείται αμέσως αυξάνοντας το bound count.
+
+\section{Υλοποίηση του Nidhugg-BPOR}
+
+Όπως είδαμε και προηγούμενως οι βασικές τροποποιήσεις πρέπει να γίνουν στις συναρτήσεις see\_events και add\_branch. 
+Ο ψευδοκώδικας για το see\_events φαίνεται στον Αλγόριθμο
+\ref{seeevents routine for BPOR}.
+
+Κατα τη διάρκει του see\_events προσθέτουμε διακλαδώσεις και στην αρχή του block όπου αυτό είναι δυνατό. Για να το κάνουμε 
+αυτό πρέπει να ελέγξουμε αν το thread που προσθέτουμε ήταν ενεργό στην αρχή του block.
+
+\begin{algorithm}[H]
+    \caption{see\_events() for BPOR}
+    \label{seeevents routine for BPOR}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{see\_events($seen\_access$)}{
+        $branches := seen\_access - \{ a \in seen\_access \mid a$ happens before $last(E) or \exists a' \in seen\_access$ which happens after $a \}$ \;
+        $update\_clocks()$ \;
+        \ForEach{$b \in branches$}{
+            $add\_branch(b)$ \;
+            \If{$last(E).id \in enabled($ at the beggining of block $b)$}{
+                $add\_branch($ at the beginning of block $b)$ \;
+            }
+        }
+     }
+\end{algorithm}
+
+Στην περίπτωση που η \verb|add_branch()| εκτελείται απευθείας χρησιμοποιύμε την \verb|add_conservative_branch()| που λειτουργεί ώς το ``συντηρητικό''
+κομμάτι της \verb|see_events()|. Ο ψευδοκώδικας της συνάρτησης δίνεται στον Αλγόριθμο \ref{try to add conservative branch}.
+Η \verb|add_branch()| έχει ήδη περιγραφεί στον Αλγόριθμο \ref{addbranch routine for persistent sets}.
+
+\begin{algorithm}[H]
+    \caption{try\_to\_add\_conservative\_branches()}
+    \label{try to add conservative branch}
+    Explore($\langle \rangle$,$\emptyset$)\;
+    \Fn{try\_to\_add\_conservative\_branches($b$)}{
+        \If{$last(E).id \in enabled($ at the beggining of block $b)$}{
+            $add\_branch($ at the beginning of block $b)$ \;
+        }
+    }
+\end{algorithm}
+
+Κατά την \verb|add_branch()| προσθέτουμε διακλαδώσεις στα κατάλληλα σημεία
+χρησιμοποιώντας την λογική των persistent sets όπως είδαμε σε προηγούμεν ενόητα.
+Όπως αναφέραμε προστίθενται δύο ειδών διακλαδώσεις. Κατά την αναζήτηση μας στο sleep set θα πρέπει να αναζητούμε 
+μόνο τα μη συντηρητικά threads. Στην περίπτωση που μια διακλάδωση του ίδιου thread προστίθεται και σαν συντηρητική και σαν
+μη συντηρητική τότε η συντηρητική υπερισχύει.
+
+\section{Υλοποίηση του Source-BPOR}
+
+Η υλοποίηση ξανά βασίζεται σε τροποποιησεις στις συναρτήσεις \verb|add_branch()| καθώς και στην
+\verb|see_events()|.  Μπορούμε να παρατηρήσουμε ότι ο αλγόριθμος θα διαλέξει τον ίδιο υποψήφιο που θα διάλεγε ο Source-DPOR 
+όταν θα προσέθετε μη συντηρητικές διακλαδώσεις και τον ίδιο υποψήφιο με τον Nidhugg-BPOR όταν θα διαλέξει συντηρητικές διακλαδώσεις.
+Ο ψευδοκόωδικάς για την 
+\verb|add_branch()| δίνεται στον Αλγόριθμο \ref{addbranch routine for Source-BPOR}.
+
+\begin{algorithm}[H]
+    \caption{add\_branch() routine for Source-BPOR}
+    \label{addbranch routine for Source-BPOR}
+    \Fn{add\_branch($b,is\_conservative$)}{
+        $candidates = \emptyset$ \;
+        $lc = null$ \;
+        $lpc = null$ \;
+        $E'$ := $E$ starting from $next_{E}(b)$ \; 
+        \ForEach{$e \in dom(E')$}{
+            \If{$b \rightarrow e$ or $\exists c \in candidates \mid c \rightarrow e $}{
+                continue \;
+            }
+
+            \If{$e \rightarrow last(E)$}{
+                $lpc := e.pid$\;
+            }
+
+            $lc := e.pid$\;
+
+            \If{$e.pid \in backtrack(b)$ or $e.pid \in sleep\_set(b)$}{
+                \If{not is\_conservative or $ lc \rightarrow last(E)$}{
+                    return \;
+                }
+            }
+        }
+        \If{$lpc$ and $is\_conservative$}{
+            $backtrack(b) := backtrack(b) \cup lpc $
+        }
+        \Else{$backtrack(b) := backtrack(b) \cup lc $}
+    }
+\end{algorithm}
