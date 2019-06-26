@@ -2,44 +2,15 @@
 \label{paradpor_opt}
 
 In this chapter, we are going to present a first attempt in parallelizing the optimal-DPOR
-algorithm, provide an analysis on why this attempt fails to provide any speedup and then present 
-and improved parallel optimal-DPOR algorithm.
-
-\section{Parallel optimal-DPOR}
-
-\subsection{Basic Idea}
-
-When parallelizing the optimal-DPOR algorithm, ideally we would like to develop a parallel algorithm that explores
-exactly the same number of interleavings as the sequential version. In other words, we want to retain
-the soundness of our algorithm, while simultaneously not exploring more interleavings than necessary. Our first
-attempt is going to utilize the fact that
-optimal-DPOR has two different phases: \textit{race detection (or planning)} and \textit{exploration}.
-
-In the race detection phase, which takes place after a maximal interleaving has been explored
-(i.e, the execution of every process cannot proceed any further),
-races between the events of an interleaving are examined and if
-they have not already been detected, appropriate interleavings are planned for future exploration.
-This planning is done through inserting execution sequences in the the wakeup tree at a certain state.
-We do know that any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
-\cite{AbdullaAronisJohnssonSagonasDPOR2014}. This basically means that the race detection phase can happen out of order
-without 
-
-The exploration phase is responsible for producing the interleavings as dictated by the execution sequences within wakeup trees. In this phase
-nothing is added on the wakeup trees of an execution sequence. However, execution sequences can be removed from wakeup trees. This means
-that as long we are careful not to explore those execution sequences that are going to be removed from the wakeup tree, we
-can explore 
-
-In this chapter we are going to examine a parallel algorithm that 
-
- Those 
-interleavings could then be explored in parallel.
+algorithm, provide an analysis on why this attempt fails to achieve any speedup and then present 
+an improved parallel optimal-DPOR algorithm.
 
 
-\section{Parallel optimal-DPOR}
+\section{Parallel optimal-DPOR - A First Attempt}
 
 \subsection{Basic Idea}
 
-Parallelizing the optimal-DPOR algorithm is significantly more complicated. We do know that whenever a call to 
+Parallelizing the optimal-DPOR algorithm is significantly more complicated than source-DPOR. We do know that whenever a call to 
 $Explore(E, Sleep, WuT)$ returns during Algorithm \ref{optimal}, then for all maximal execution sequences
 of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
 However, the complete $WuT$ at some execution sequence $E$ cannot be known until we have completed
@@ -50,16 +21,24 @@ entries to any wakeup tree of an execution sequence that is ordered after the cu
 Therefore, when assigning an incomplete wakeup tree to a scheduler there is no
 guarantee that the scheduler will explore the complete assigned state space. This means that if a
 scheduler inserts a fragment into a wakeup tree owned by a different scheduler, we cannot know if that 
-fragment (or a different but equivalent fragment) was indeed explored, unless there is some form of
-centralized race detection.
+fragment (or a different but equivalent fragment) was indeed explored. As a result, the concept of the ownership of a 
+backtrack entry, as defined in Chapter \ref{paradpor}, cannot remain the same for the optimal-DPOR algorithm.
+
+Another main issue with optimal-DPOR is the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
+rearranging the sequence of the events within $v$. This means that two execution sequences, while different,
+may be equivalent. This can potentially lead to different schedulers inserting in their
+wakeup trees execution sequences that while different, may produce equivalent interleavings and therefore, the optimality
+of the algorithm could be lost.
 
 However, we do know that any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
 \cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that during the sequential algorithm, any fragment that
-is inserted into a wakeup tree is a fragment that must be explored. Therefore, when we insert a fragment into a wakeup tree,
-we can explore it out of order. We can take advantage of this to create an algorithm that can explore many interleavings in parallel
-but race detects each explored interleaving sequentially.
+is inserted into a wakeup tree is a fragment that must be explored, unless it is removed during
+the exploration phase of the algorithm. Therefore, when we insert a fragment into a wakeup tree,
+we can explore it out of order, as long as we are careful to remove execution sequences that
+would have been removed on the sequential algorithm. We can take advantage of this to create an algorithm that can explore 
+many interleavings in parallel but race detects each explored interleaving sequentially.
 
-\subsection{Algorithm Presentation}
+\subsection{Algorithm}
 
 Due to the fact that we need to have parallel exploration of interleavings but sequential planning, we need to decouple the
 the normal exploration loop of a scheduler into two different parts: $state$ $exploration$ and $race$ $detection-planning$.
