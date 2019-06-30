@@ -18,20 +18,20 @@ exploring all execution sequences which are ordered before $E$, according to the
 (Definition \ref{def:Ordered}). This happens because the $insert_{[E']}(v,wut(E'))$ function can add
 entries to any wakeup tree of an execution sequence that is ordered after the current execution sequence.
 
-Therefore, when assigning an incomplete wakeup tree to a scheduler there is no
+Therefore, when assigning an incomplete wakeup tree to a scheduler, there is no
 guarantee that the scheduler will explore the complete assigned state space. This means that if a
 scheduler inserts a fragment into a wakeup tree owned by a different scheduler, we cannot know if that 
 fragment (or a different but equivalent fragment) was indeed explored. As a result, the concept of the ownership of a 
 backtrack entry, as defined in Chapter \ref{paradpor}, cannot remain the same for the optimal-DPOR algorithm.
 
-Another main issue with optimal-DPOR is the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
+Another main issue with optimal-DPOR, is the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
 rearranging the sequence of the events within $v$. This means that two execution sequences, while different,
 may be equivalent. This can potentially lead to different schedulers inserting in their
 wakeup trees execution sequences that while different, may produce equivalent interleavings and therefore, the optimality
 of the algorithm could be lost.
 
 However, we do know that any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
-\cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that during the sequential algorithm, any fragment that
+\cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that, during the sequential algorithm, any fragment that
 is inserted into a wakeup tree is a fragment that must be explored, unless it is removed during
 the exploration phase of the algorithm. Therefore, when we insert a fragment into a wakeup tree,
 we can explore it out of order, as long as we are careful to remove execution sequences that
@@ -40,27 +40,27 @@ many interleavings in parallel but race detects each explored interleaving seque
 
 \subsection{Algorithm}
 
-Due to the fact that we need to have parallel exploration of interleavings but sequential planning, we need to decouple the
+Due to the fact that we need to have parallel exploration of interleavings but sequential planning, we need to decouple
 the normal exploration loop of a scheduler into two different parts: $state$ $exploration$ and $race$ $detection-planning$.
 Our workers (the Schedulers) will be responsible for the first part. For the second part, we are going to use a centralized
-planner. However, in order to be able to better distribute the available work to the schedulers when the planner is busy,
+Planner. However, in order to be able to better distribute the available work to the schedulers when the Planner is busy,
 we are also going to use a Controller.
 
 \begin{algorithm}
-    \caption{Optimal Controller}
+    \caption{Controller for Optimal-DPOR - First Attempt}
     \label{optcontrollerloop}
     \Fn{controller\_loop($Schedulers$)}{
         $E_0 \leftarrow$ an arbitrary initial execution sequence\;
         $Frontier \leftarrow[E_0]$\;
         $T \leftarrow$ an execution tree rooted at $E_0$\;
         $PlannerQueue \leftarrow empty$\;
-        \While{ $size(Frontier) > 0$ \textnormal{and} $ size(PlannerQueue) > 0$} {
+        \While{$size(Frontier) > 0$ \textnormal{and} $ size(PlannerQueue) > 0$} {
             $partition(Frontier)$\;
-            \While{ exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
+            \While{exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
                 $E_c \leftarrow$ a copy of $E$\;
                 $spawn(S, explore(E_c))$\;
             }
-            \While{ the Planner is idle and PlannerQueue $\neq$ empty }{
+            \While{the Planner is idle and PlannerQueue $\neq$ empty }{
                 $E \leftarrow PlannerQueue.pop()$\;
                 $update\_trace(E, T)$\;
                 $spawn(Planner, plan(E))$\;
@@ -84,7 +84,7 @@ space Definition \ref{def:Ordered}) are inserted into the execution tree as $not
 that no redundant fragments are going to be inserted for future explorations and therefore, the algorithm remains optimal. 
 
 The $plan(E)$ function race detects the fully explored execution sequence $E$ according to the logic of optimal-DPOR 
-(Algorithm \ref{optimal}). When the planning of the sequence is finished the results are reported back to the Contoller.
+(Algorithm \ref{optimal}). When the planning of the sequence is finished the results are reported back to the Controller.
 The $explore(E)$ function explores the execution sequence $E$ until a maximal execution sequence
 has been reached and reports back that execution sequence to the Controller.
 
@@ -94,7 +94,7 @@ has been reached and reports back that execution sequence to the Controller.
     \label{optpartition}
     \Fn{partition($Frontier$)}{
         \For{all E $\in$ Frontier}{
-            \While{ $wakeup\_tree\_leaves(E) > 1$ }{
+            \While{$wakeup\_tree\_leaves(E) > 1$ }{
                 $E' \leftarrow $ \textnormal{a prefix of $E$
                 with $wut(E') \neq \emptyset $} \;
                 $v \leftarrow \textnormal{ a leaf} \in wut(E') $\;
@@ -113,9 +113,10 @@ has been reached and reports back that execution sequence to the Controller.
 Partitioning the exploration frontier (Algorithm \ref{optpartition}) has two main differences, compared to the parallel source-DPOR.
 Firstly, the frontier gets partitioned completely, so we can maximize the parallelization of the exploration phase. 
 Secondly, the entries that are distributed from one execution sequence, are not simply removed from the backtrack and added to
-the sleep set. It is vital here to maintain the correct ordering between the interleavings (Definition \ref{def:Ordered}). Therefore,
-the given entry simply is marked as $not\_owned$ at the distributed sequence. The function  $split\_wut\_at(v, wut(E_c'))$
-splits the copy of the wakeup tree to 3 parts: the $Prefix$ (the wakeup tree entries ordered before the branch $v$), the leaf $v$
+the sleep set. It is vital here to maintain the correct ordering between the interleavings (Definition \ref{def:Ordered}), because during the exploration phase of the optimal-DPOR algorithm, branches can be removed
+from the wakeup tree. Maintaining the ordering will keep this behavior intact in the parallel version. Therefore,
+the given entry is marked as $not\_owned$ at the distributed sequence. The function  $split\_wut\_at(v, wut(E_c'))$
+splits the copy of the wakeup tree to three parts: the $Prefix$ (the wakeup tree entries ordered before the branch $v$), the leaf $v$
 and the $Suffix$ (the wakeup entries ordered after $v$). The first processes processes of the entries of
 the $Prefix$ are added to the sleep set at the new execution sequence $E_c'$ (e.g. if $p.q.r$ is a leaf in $Prefix$, then $p$ is added to
 $sleep(E_c')$). The $Suffix$ entries are marked as $not\_owned$ at $E_c'$.
@@ -125,7 +126,7 @@ $sleep(E_c')$). The $Suffix$ entries are marked as $not\_owned$ at $E_c'$.
     \label{optresponse}
     \Fn{wait\_response(Frontier, T, PlannerQueue)}{
         \textbf{receive} a message M\;
-        \uIf{ M is sent from a Scheduler}{  
+        \uIf{M is sent from a Scheduler}{  
             $E \leftarrow M$\;
             $PlannerQueue.push(E)$\;
         }
@@ -141,10 +142,10 @@ After assigning the available work to the available schedulers and the Planner, 
 either from a scheduler or the Planner (Algorithm \ref{optresponse}). When a response is received from a scheduler,
 the fully explored received execution sequence will be added to the queue of the Planner and the Controller will continue
 with its loop (Algorithm \ref{optcontrollerloop}). If a response is received from the Planner, the Controller will update
-the execution tree $T$ by adding the new wakeup trees that were inserted by the planner and by deleting the suffix of
+the execution tree $T$ by adding the new wakeup trees that were inserted by the Planner and by deleting the suffix of
 the execution sequence that was just explored and has no wakeup trees. We delete this part in order to have the 
 execution tree only contain the part of the state space that is either currently getting explored or is planned to be explored.
-If we were to not delete those suffixes the size of the execution tree would eventually be the size of our complete state space.
+If we were to not delete those suffixes, the size of the execution tree would eventually be the size of our complete state space.
 
 \subsection{Example}
 
@@ -180,7 +181,7 @@ If we were to not delete those suffixes the size of the execution tree would eve
   \end{figure*}
 
 In Figure \ref{optexample} we can se the pseudocode of $lastzero$ 2, were we have an array of 3 elements (initially all elements have
-a zero value) and 3 processes. The first process ($p$) searches the array for the zero element with the highest index. 
+a zero value) and three processes. The first process ($p$) searches the array for the zero element with the highest index. 
 The other two processes increase their assigned element by a value of 1.
 
 \tracelonglong{opt1.png}{Interleavings explored by the sequential optimal-DPOR}
@@ -209,3 +210,52 @@ planned from the 3rd trace but only from the 2nd. This makes apparent the main i
 the complete wakeup tree at some execution sequence $E$ cannot be known until we have completed
 exploring all execution sequences which are ordered before $E$, according to the total order of our state space
 (Definition \ref{def:Ordered})
+
+\subsection{Performance Evaluation - Why such an approach cannot succeed}
+
+We are going to use the following two synthetic benchmarks to evaluate
+our first attempt in parallelizing the optimal-DPOR algorithm:
+
+\begin{itemize}
+    \item $readers$ $N$: This benchmark uses a writer process that writes a variable and $N$ reader processes that read that variable.
+    \item $ lastzero$ $N$: In this test we have $N+1$ processes that read and write on an array of $N+1$ size, which has all its 
+    values initialized with zero. The first process reads the array in order to find the zero element with the highest
+    index. The other $N$ processes read an array element and update the next one.
+\end{itemize}
+
+Our parallel optimal-DPOR fails to achieve any type of speedup, as depicted in Figure 
+\ref{Execution time for readers 10 by optimal-DPOR.}. Table \ref{Parallel Optimal-DPOR performance.}
+holds information about how our implementation runs on various test cases. The exploration and planning
+time rows show what percentage of the time of the sequential algorithm is spend on exploring and planning interleavings respectively.
+Those measurements will help us explain the reason for this lack of speedup.
+
+\mediumGraph{scripts/readers10_timedd.png}{Execution time for readers 10 by optimal-DPOR.}
+
+
+\smalltabular{"tables/opttab.tex"}{Parallel Optimal-DPOR performance.}
+
+\subsection{Performance Analysis}
+
+This lack of performance is justified by the following reasons.
+
+Firstly, lets look at the exploration and planning percentages of the sequential algorithm,
+presented at Table \ref{Parallel Optimal-DPOR performance.}. While the percentage of exploration time in the case of a small test
+case like readers10 is around 40$\%$, we have observed that for larger test cases this figure varies between 10$\%$-30$\%$. 
+This means that even on an ideal setup, with zero overhead and infinite schedulers, our speedup could never exceed a factor
+of 1.429 (on a test case with 70$\%$ planning time, if we consider that the exploration phase happens instantly the 
+speedup would be 1.429 = $100\over 70$, since the planning phase would still have to take place sequentially). 
+This reason, by itself, makes it impossible for our algorithm to achieve good performance and scalability.
+
+What is more, the rate with which new interleavings are planned for exploration, leads to schedulers not being sufficiently utilized throughout the complete execution of the algorithm. Specifically, we have noticed that the execution of the DPOR algorithm can be split into three consecutive phases. In the first phase, race detecting a single interleaving generates a large amount of interleavings that need to be explored. This means that, during this phase, the schedulers have enough work and are being kept utilized. During the second phase, race detecting an interleaving generates a relatively small amount of new interleavings that need to be explored. Generally, during this phase not enough work is being generated and the schedulers tend to stay idle. In the third phase,
+barely any new interleavings are planned, until the complete state space has been explored, at which point the algorithm terminates. 
+
+This pattern can be 
+
+To make matters worse, our algorithm also has a significant overhead. As mentioned before, communication between
+the controller and the workers can be a substantial bottleneck. The parallel source-DPOR deals with it by assigning
+a state space to the workers, minimizing the need for communication. However, in the parallel optimal-DPOR algorithm
+the need for central planning leads to the scheduler having to report a trace back to the controller every sigle
+time an exploration reaches its end. Also, in this case, before the centralized planner can race detect a trace,
+we have to update this trace with the wakeup trees that ordered after the trace
+(Definition \ref{def:Ordered}) and have been inserted into the execution tree
+since the last time this trace was planned (Algorithm \ref{optcontrollerloop}).

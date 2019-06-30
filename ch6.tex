@@ -1,8 +1,8 @@
 \chapter{Performance Evaluation}
 \label{perfresults}
 
-In this chapter we are going to present the performance results of our parallel source-DPOR and optimal-DPOR algorithms,
-implemented in Concuerror. We are going to evaluate our results on some standard and synthetic programs that are normally
+In this chapter, we are going to present the performance results of our parallel source-DPOR and optimal-DPOR algorithms,
+implemented in Concuerror. We are going to evaluate our results on some ``standard" and synthetic benchmarks that are normally
 used to test DPOR algorithms. Finally, we will try to explain the behavior of the parallel program as reflected in those
 charts, drawing related conclusions whenever possible.
 
@@ -12,16 +12,16 @@ First we are going to give a brief overview of the programs tested:
 
 \begin{itemize}
     \item $indexer$ $N$: This test uses a Compare and Swap (CAS) primitive instruction to check if a specific element of
-    a matrix is set to 0 and if so, set it to a new value. This implemented in erlang by using $ETS$ tables and specifically
-    the $insert\_new/2$ function. This function return false if the key of the inserted tuple exists (the entry is set to 0)
-    or it inserts the tuple if the key is not found.
-    \item $readers$ $N$: This benchmark uses a writer process that writes a variable and N reader processes that read that variable.
+    a matrix is set to 0 and if so, set it to a new value. This is implemented in Erlang by using $ETS$ tables and specifically
+    the $insert\_new/2$ function. This function returns false if the key of the inserted tuple exists (the entry is set to 0)
+    or it inserts the tuple if the key is not found. $N$ refers to the number of threads that are performing this function.
+    \item $readers$ $N$: This benchmark uses a writer process that writes a variable and $N$ reader processes that read that variable.
     \item $writers$ $N$: This is a modification of the readers test. Here we have a reader process that reads a variable and 
     N writer processes that write that variable. The fact that we have many writers creates more races and therefore more work
     for our program.
-    \item $ lastzero$ $N$: In this test we have N+1 processes that read and write on an array of N+1 size, which has all its 
+    \item $ lastzero$ $N$: In this test we have $N+1$ processes that read and write on an array of $N+1$ size, which has all its 
     values initialized with zero. The first process reads the array in order to find the zero element with the highest
-    index. The other N processes read an array element and updated the next one.
+    index. The other $N$ processes read an array element and update the next one.
 \end{itemize}
 
 Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks} contains information about the traces explored and duration of those
@@ -87,35 +87,6 @@ is not the only scalability factor and different test cases with equivalent size
 
 \subsection{Preformance Results}
 
-Our parallel optimal-DPOR fails to achieve any type of speedup, as depicted in Figure 
-\ref{Execution time for readers 10 by optimal-DPOR}. Table \ref{Parallel Optimal-DPOR performance}
-holds information about how our implementation runs on various test cases. The exploration and planning
-time row show what percentage of the time of the sequential algorithm is spend on exploring and planning interleavings.
-Those measurements will help us explain the reason for this lack of speedup.
-
-\mediumGraph{scripts/readers10_timedd.png}{Execution time for readers 10 by optimal-DPOR}
-
-
-\smalltabular{"tables/opttab.tex"}{Parallel Optimal-DPOR performance}
-
-\subsection{Performance Analysis}
-
-This lack of performance is completely justified through the exploration and planning percentages of the sequential algorithm,
-presented at Table \ref{Parallel Optimal-DPOR performance}. While the percentage of exploration time in the case of a small test
-case like readers10 is around 40$\%$, we have observed that for larger test cases this figure varies between 10$\%$-30$\%$. 
-This means that even on an ideal setup, with zero overhead and infinite schedulers, our speedup could never exceed a factor
-of 1.429 (on a test case with 70$\%$ planning time, if we consider that the exploration phase happens instantly the 
-speedup would be 1.429 = $100\over 70$, since the planning phase would still have to take place sequentially). 
-This reason, by itself, makes our algorithm impossible to achieve good performance and scalability.
-
-To make matters worse, our algorithm also has a significant overhead. As mentioned before, communication between
-the controller and the workers can be a substantial bottleneck. The parallel source-DPOR deals with it by assigning
-a state space to the workers, minimizing the need for communication. However, in the parallel optimal-DPOR algorithm
-the need for central planning leads to the scheduler having to report a trace back to the controller every sigle
-time an exploration reaches its end. Also, in this case, before the centralized planner can race detect a trace,
-we have to update this trace with the wakeup trees that ordered after the trace
-(Definition \ref{def:Ordered}) and have been inserted into the execution tree
-since the last time this trace was planned (Algorithm \ref{optcontrollerloop}).
 
 \section{Final Comments}
 

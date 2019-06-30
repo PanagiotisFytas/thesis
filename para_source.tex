@@ -4,7 +4,7 @@
 Concuerror utilizes primarily DPOR algorithms to systematically test concurrent Erlang programs. 
 Therefore, parallelizing Concuerror entails designing parallel versions for its DPOR algorithms. 
 Since Concuerror is written in Erlang, which is a functional language that is based on message passing to share 
-data between processes, we are going to follow a message passing approach while developing our algorithms.
+data between processes, we are going to follow a message passing approach, while developing our algorithms.
 
 In this chapter, we are going to present the parallel version of the source-DPOR algorithm. Let us first
 discuss some existing work in parallelizing persistent-set based DPOR algorithms.
@@ -12,7 +12,7 @@ discuss some existing work in parallelizing persistent-set based DPOR algorithms
 \section{Existing Work}
 
 When parallelizing DPOR algorithms, ideally we would like to develop parallel algorithms that explore
-exactly the same number of interleavings as the sequential versions. In other words, we want to retain
+exactly the same number of interleavings as their sequential versions. In other words, we want to retain
 the soundness of our algorithms, while simultaneously not exploring more interleavings than necessary
 
 At a first glance, parallelizing DPOR algorithms may seem straightforward. Since the state space of a program contains no cycles, 
@@ -25,36 +25,80 @@ to $explore(E.p, Sleep)$ may guarantee that for all maximal execution
 sequences of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in
 $[E.w]_\simeq$, backtrack points may also be inserted in the prefixes of $E.p$. 
 For instance, lets assume that we assign to one scheduler the exploration of $E.p$ and to another scheduler
-the exploration of $E.q$. Both of those explorations may lead to adding the same process $r$ to the backtrack at $E$. This would mean that
-both those scheduler would end up calling $explore(E.r, Sleep)$. Therefore, different schedulers may end up fully exploring
-identical interleavings, despite the use of sleep sets. In order to combat those redundant explorations, 
+the exploration of $E.q$. Since we are using message passing
+as our programming model, our schedulers would use different copies
+of the prefix $E$. Both of those explorations may lead to adding the same process $r$ to the backtrack at $E$. This would mean that
+both those schedulers would end up calling $explore(E.r, Sleep)$. Therefore, different schedulers may end up fully exploring
+identical interleavings. In order to combat those redundant explorations, 
 Yang et al. \cite{Yang:2007:DDP:1770532.1770541} suggest a heuristic
 that simply modifies the lazy addition of backtrack entries to the exploration frontier \cite{FlanaganDPOR} to become more eager.
 Adding backtrack entries more eagerly, i.e., earlier in the exploration phase, reduces the chances of two different workers
-exploring identical interleavings. However, this is simply a heuristic, which means that
+exploring identical interleavings. In the above scenario, this strategy could have led to $r$ being added to the backtrack at $E$ before
+assigning the exploration of $E.p$ and $E.q$ to different schedulers. Therefore, both of our schedulers would have know that $r$ exists in
+the backtrack of $E$ and none of them would have added it,
+avoiding the duplicate exploration of $E.r$. However, this is simply a heuristic, which means that
 depending on the tested program, a significant amount of redundant computations
 may still occur. Particularly, this heuristic fails to prevent redundant explorations, when branches in the code lead to different races.
 
-Secondly, the size of different chunks of the state space cannot be known preemptively. This means that some form of load balancing
+Secondly, the size of different chunks of the state space cannot be known a priori. This means that some form of load balancing
 is essential to achieve linear speedup.
-Yang et al. \cite{Yang:2007:DDP:1770532.1770541} suggest using a centralized load balancer to unload work from a scheduler, whose
-frontier exceeds a certain limit, to idle schedulers.
+Yang et al. \cite{Yang:2007:DDP:1770532.1770541} suggest using a centralized load balancer to unload work from a scheduler.
+Specifically, a scheduler calls the load balancer when the total
+number of backtrack entries in the execution sequence of the scheduler
+exceed a threshold. However, for different programs and different number of workers, different threshold
+values should be used \cite{Simsa2012ScalableDP}. Still, Yang et al. provide no insight into the problem
+of selecting an appropriate threshold.
 
-A more appropriate way to solve these issues is to use a centralized $controller$, which keeps track of the current 
-$execution$ $tree$ (a tree whose branches correspond to the current execution sequences $E$ of the schedulers) in order
-to assure that no redundant explorations occur \cite{Simsa2012ScalableDP}. This method also suggests the use of
-$time$ $slicing$ to achieve load balancing. 
+Simsa et al. \cite{Simsa2012ScalableDP} provide
+a more appropriate way to solve these issues. By using a centralized $Controller$, which keeps track of the current 
+$execution$ $tree$ (a tree whose branches correspond to the current execution sequences $E$ of the schedulers), they assure that no redundant explorations occur. They also suggests the use of
+$time$ $slicing$ to achieve load balancing.
 
 \section{Parallel source-DPOR}
 
 Here we are going to present how to efficiently parallelize the source-DPOR algorithm, by modifying the parallel algorithm 
 presented by Simsa et al. \cite{Simsa2012ScalableDP}.
 
-\subsection{Algorithm Presentation}
+\subsection{Basic Idea}
 
-Normally DPOR algorithms perform a depth-first search of the state-space to check for erroneous interleavings. Instead, we
-are going to use multiple depth-first searches (by partitioning the frontier of our search) to explore our state-space.
-Also we are going to use a centralized $Controller$ to oversee this exploration so we avoid any redundant computations.
+Normally, DPOR algorithms perform a depth-first search of the state space to check for erroneous interleavings. Instead, we
+are going to use multiple depth-first searches (by partitioning the frontier of our search) to explore our state space.
+
+We are going to use a centralized $Controller$ who will be
+responsible for distributing the exploration
+frontier to different worker-schedulers. The Controller is
+also going to oversee the parallel exploration, so we avoid exploring more interleavings than the sequential version.
+
+In order to avoid redundant explorations, we are going to use the
+concept of $ownership$ \cite{Simsa2012ScalableDP} of a node of a state space. A scheduler exclusively owns a node of the state space if it is
+either contained  as a backtrack entry within the part of the frontier that was assigned 
+to that specific scheduler, or if it is a descendant of a node
+that the scheduler owns. All other nodes, are considered to have a
+$disputed$ ownership. 
+
+The scheduler, when conducting its depth-first search, is going to be
+allowed to explore only nodes that it owns. When encountering disputed
+nodes, the scheduler will report back to the Controller, which will 
+keep track of the complete active frontier. If that disputed node
+does not exist within the complete frontier, then no other 
+scheduler has explored that node and therefore, the scheduler
+can $claim$ $ownership$ over the disputed node and continue with 
+exploring it. Otherwise, the ownership of the disputed node
+has been claimed by some other scheduler and therefore, that node
+can be discarded from the frontier of our scheduler.
+
+For example, if a scheduler is responsible
+for exploring an execution sequence $E$ that has a single backtrack 
+entry of $p$ at $E$, then that scheduler owns every node
+that is a descendant of $E.p$ i.e., it owns every execution sequence
+that begins with the prefix $E.p$ ($[E.p]_\simeq$). Now lets assume that during the exploration of  $[E.p]_\simeq$, $r$ has been added at
+the backtrack at $E$. Since this node is disputed, the scheduler
+will not explore this backtrack entry. Instead, it will report
+back to the Controller, in order to determine whether some other entry
+has already claimed ownership over $E.r$. 
+
+
+\subsection{Algorithm}
 
 \SetKwProg{Fn}{Function}{}{}
 \SetKwHangingKw{Let}{let}
@@ -65,23 +109,24 @@ Also we are going to use a centralized $Controller$ to oversee this exploration 
         $E_0 \leftarrow$ an arbitrary initial execution sequence\;
         $Frontier \leftarrow[E_0]$\;
         $T \leftarrow$ an execution tree rooted at $E_0$\;
-        \While{ $size(Frontier) > 0$} {
-            $partition(Frontier, N)$\;
-            \While{ exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
+        \While{$Frontier \neq \emptyset$} {
+            $Frontier \leftarrow partition(Frontier, N)$\;
+            \While{exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
                 $E_c \leftarrow$ a copy of $E$\;
+                mark $E$ as assigned in $Frontier$\;
                 $spawn(S, explore\_loop(E_c, Budget))$\;
             }
-            $wait\_scheduler\_response(Frontier, T)$\;
+            $Frontier,T \leftarrow wait\_scheduler\_response(Frontier, T)$\;
         }
            
     }
 
 \end{algorithm}
 
-The logic of the Controller is described by Algorithm \ref{controllerloop}. The Controller will maintain a $Frontier$, 
+The logic of the Controller is shown in Algorithm \ref{controllerloop}. The Controller maintains a $Frontier$, 
 which is a set of execution sequences $E$, and an execution tree $T$, which contains
-as branches the execution sequences of the Frontier. For as long as there exists an execution sequence at the frontier 
-($size(Frontier)>0$), the controller will partition its Frontier to at most $N$ execution sequences. Then, the controller
+as branches the execution sequences of the $Frontier$. For as long as there exists an execution sequence at the $Frontier$ 
+($Frontier \neq \emptyset$), the Controller will partition its $Frontier$ to at most $N$ execution sequences. Then, the Controller
 will try to assign all of its unassigned execution sequences to any idle scheduler, by spawning $explore\_loop(E_c, Budget)$
 functions. Finally, it will block until it receives a response from a scheduler.
 
@@ -91,9 +136,6 @@ functions. Finally, it will block until it receives a response from a scheduler.
     \label{partition}
     \Fn{partition($Frontier$, $N$)}{
         \For{all E $\in$ Frontier}{
-            \If{$size(Frontier) = N$}{
-                return\;
-            }
             \While{ $total\_backtrack\_entries(E) > 1$ \textbf{ and } $size(Frontier) < N$}{
                 $E' \leftarrow $ \textnormal{the smallest prefix of $E$
                 that has a backtrack entry} \;
@@ -105,14 +147,17 @@ functions. Finally, it will block until it receives a response from a scheduler.
                 \textnormal{add $E_c'$ to $ Frontier$}\;
             }
         }
+        return $Frontier$\;
     }
 \end{algorithm}
 
-During the $partitioning$ phase (Algorithm \ref{partition}), we inspect the current Frontier to determine whether
-we should create additional execution sequences. Every execution sequence that contains more than one backtrack entry,
-is split into multiple sequences until either the frontier contains $N$ sequences or all sequences
-have exactly one backtrack entry. It is vital to modify sleep sets appropriately, because if we were to simply
-remove backtrack entries, our algorithm would have an increased amount of sleep-set blocked interleavings.
+During the $partitioning$ phase (Algorithm \ref{partition}), we inspect the current $Frontier$ to determine whether
+we should create additional execution sequences. Every execution sequence that contains more than one backtrack entry
+is split into multiple sequences until either the $Frontier$ contains $N$ sequences or all sequences
+have exactly one backtrack entry. It is vital to modify sleep sets appropriately because, if we were to simply
+remove backtrack entries, our algorithm would have an increased amount of sleep-set blocked interleavings. In addition, we would also 
+end up potentially re-adding the same backtrack entries, which would lead
+to exploring duplicate interleavings.
 
 \begin{algorithm}
     \caption{Scheduler Exploration Loop}
@@ -126,7 +171,7 @@ remove backtrack entries, our algorithm would have an increased amount of sleep-
             $ E'' \leftarrow get\_next\_execution\_sequence(E')$\;
             $CurrentTime \leftarrow get\_time()$\;
         }
-        \textnormal{\textbf{send}  $E''$ to controller} \;
+        \textnormal{\textbf{send}  $E''$ to Controller} \;
     }
 \end{algorithm}
 
@@ -139,62 +184,71 @@ race detection) of the sequential source-DPOR. The $ plan\_more\_interleavings(E
 could add backtrack points in prefixes of $E_0$. This could lead to different schedulers exploring
 identical interleavings. We avoid this by having 
 the function $ get\_next\_execution\_sequence(E')$ return 
-the largest prefix of $E'$ that has a non empty backtrack set. This leads to a depth-first exploration of the assigned
+the largest prefix of $E'$ that has a non-empty backtrack set. This leads to a depth-first exploration of the assigned
 state space before considering interleavings outside of the state space. The exploration
 continues until we encounter a prefix of $E_0$ ( $size(E'') \leq size(E_0)$ ). This is necessary to 
 assert that the specific scheduler will not explore interleavings outside of its state space. When the exploration
-terminates, the backtrack points added to the prefixes of $E_0$ will be reported back to the controller.
+terminates, the backtrack points added to the prefixes of $E_0$ will be reported back to the Controller.
 
 \begin{algorithm}
     \caption{Handling Scheduler Response}
     \label{response}
     \Fn{wait\_scheduler\_response(Frontier, T)}{
         \textnormal{\textbf{receive} $E$ from a scheduler}\;
-        $E' \leftarrow update\_execution\_tree(E, T)$\;
-        \textnormal{add $E'$ to $Frontier$}\;
+        remove $E$ from $Frontier$\;
+        $E',T \leftarrow update\_execution\_tree(E, T)$\;
+        \If{$E'$ has at least one backtrack entry}{
+                \textnormal{add $E'$ to $Frontier$}\;
+        }
+        return $Frontier,T$;
     }
 \end{algorithm}
 
 
-When the controller receives a response (an execution sequence $E$) from a scheduler (Algorithm \ref{response}), it will 
+When the Controller receives a response (an execution sequence $E$) from a scheduler (Algorithm \ref{response}), it will 
 try and report any new
-backtrack entries in $E$ to the execution tree $T$. Those backtrack entries that are not found
+backtrack entries in $E$ to the execution tree $T$. This is done
+through the $update\_execution\_tree(E, T)$ function. This function
+iterates over the execution sequence and the execution tree simultaneously and those backtrack entries of $E$ that are not found
 in the execution tree, are added to it and they are not removed from the execution sequence. This means that 
-this execution sequence is the first to $claim$ $ownership$ over those entries and the state-space
-that exists under them. Any backtrack entries that already exist in $T$, are removed from the 
+this execution sequence is the first to $claim$ $ownership$ over those entries and the state space
+that exists under them. Any backtrack entries that already exist in $T$ are removed from the 
 execution sequence $E$ (and added to the sleep sets at the appropriate prefixes of $E$),
 because some other execution sequence has already claimed their ownership. This updated execution sequence is then 
-added to the frontier of the controller. Through this we make sure that two schedulers cannot explore identical
+added to the $Frontier$ of the Controller. Through this we make sure that two schedulers cannot explore identical
 interleavings.
 
 When updating the execution tree, we also use the initial execution sequence that was assigned to a scheduler
 (the one denoted as $E_0$ at Algorithm \ref{explore_loop}) to figure out which parts of the execution tree have
 already been explored. Those parts are deleted from the execution tree. 
-This is mandatory in order to keep the size of the execution tree proportionate to the size of our current frontier.
+This is mandatory in order to keep the size of the execution tree proportionate to the size of our current $Frontier$.
 
 
 \subsection{Load Balancing}
 
 In order to achieve decent speedups and scalability it is necessary to have load-balancing \cite{Simsa2012ScalableDP}.
-This done through time-slicing \cite{wiki:timeslice} the exploration of execution sequences. This is the reason
+This done through time-slicing the exploration of execution sequences. This is the reason
 behind the use of $Budget$ in Algorithm \ref{explore_loop}. By having schedulers return after a certain time-slice,
-we can make sure that even if their assigned state-space was larger compared to that of other schedulers, they will
+we can make sure that even if their assigned state space was larger compared to that of other schedulers, they will
 eventually exit and have their execution sequence and subsequently, their state space, partitioned. How effective
 is this method is determined by two variables, the upper limit $N$ to the number of execution sequences in our
-frontier and the $Budget$ of a scheduler.
+$Frontier$ and the $Budget$ of a scheduler.
 
-Higher upper limit $N$ means that a larger work pool is available to the workers and therefore, the utilization of the schedulers
+Higher upper limit $N$ means that a larger work pool is available to the workers and they do not always have to wait
+for the $update\_execution\_tree(E, T)$ function to terminate. Therefore, the utilization of the schedulers
 increases.
-However a larger $N$ also means increased memory requirements, since more execution sequences are active at each time.
-Setting this limit to double the amount of schedulers, produces the decent results for most test cases\cite{Simsa2012ScalableDP}.
+However, a larger $N$ means increased memory requirements, since more execution sequences are active at each time. More importantly, 
+it also means that the state space splits into smaller fragments. This increases how frequently a scheduler discovers disputed nodes, which
+leads to an increase in the communication between the schedulers and the controller.
+Setting this limit to double the amount of schedulers, produces decent results for most test cases\cite{Simsa2012ScalableDP}.
 
-Smaller Budget values lead to more balanced workload, since the work is distributed more frequently. However,
+Smaller $Budget$ values lead to more balanced workload, since the work is distributed more frequently. However,
 extremely low values may lead to an increased communication overhead between the Controller and the schedulers.
-This can also cause the controller to become a significant bottleneck. The best way to deal with this,
-is to pick an initial value $B$ of around 1-10 seconds. When a scheduler starts a new exploration,
+This can also cause the Controller to become a significant bottleneck. The best way to deal with this,
+is to pick an initial value $Budget$ of around 1-10 seconds. When a scheduler starts a new exploration,
 the value of its budget will be dynamically assigned by the Controller depending on the amount of
-idle schedulers. For instance, the first execution should have a budget of $B \over n$ were $n$ is the total amount of
-schedulers, which are all idle. When half the schedulers are idle this value should be $B \over 2$, etc. This makes it possible to have
+idle schedulers. For instance, the first execution should have a budget of $Budget \over n$ were $n$ is the total amount of
+schedulers, which are all idle. When half the schedulers are idle, this value should be $Budget \over 2$, etc. This makes it possible to have
 reduced communication (higher budget) during periods with many busy schedulers and a better balancing
 (lower budget) during periods with many idle schedulers.
 
@@ -245,7 +299,7 @@ In Figure \ref{Exploration of the assigned traces by each scheduler} we illustra
 execution sequence. The first scheduler explores its first trace: $p.r.q.q$ (equivalent to the second trace 
 at Figure \ref{Interleavings explored by the sequential source-DPOR}). After the race detection takes place,
 there are no backtrack entries added below its assigned trace. The only execution sequence planned is the sequence $r$. However,
-this sequence is not explored since it does not belong to the state space of the scheduler. The controller assigned to the
+this sequence is not explored since it does not belong to the state space of the scheduler. The Controller assigned to the
 second scheduler the execution sequence $q$. After exploring its first trace, two more races are detected. It is important to notice
 here that the first trace of the second scheduler is equivalent to the third trace of the sequential algorithm. However,
 the sequential algorithm detects only one race. This happens because on the sequential algorithm the race between $q: read(x)$ and
@@ -255,20 +309,20 @@ is explored by another scheduler and therefore, there is no knowledge of this ra
 both our schedulers having detected the same race. Nevertheless, in both schedulers this new backtrack entry is outside of their
 state space. 
 
-This means that they will have to report their results back to the controller. The schedulers that reports first its results, 
+This means that they will have to report their results back to the Controller. The schedulers that reports first its results, 
 will be the one to update the execution tree by inserting the new entry found. This
 scheduler will add its execution sequence to the frontier, which will be again partitioned
 (no need for a partition here since the unexplored frontier will only have one race). Then this execution sequence will be
-assigned to an idle scheduler. The scheduler that reports second to the controller, will not be able to insert its 
+assigned to an idle scheduler. The scheduler that reports second to the Controller, will not be able to insert its 
 backtrack entry into the execution tree, because that entry will already be there, and the backtrack entry gets removed
 from its execution sequence. This execution sequence will be left with no more backtrack entries and as such it will not be
 inserted into the frontier. This guarantees that we do not explore identical interleavings more than once.
 
 Lets assume that Scheduler 1 was the one that managed to report first to the Controller. Then the execution tree will be the one
 depicted in Figure \ref{Execution Tree if Scheduler 1 returned first}. Notice here that the states explored by the Scheduler 1
-were deleted from the execution tree. This keeps the size of the execution tree proportionate to the size of 
+were deleted from the execution tree. This keeps the size of the execution tree proportional to the size of 
 the current exploration frontier. At this point Scheduler 1 will add its execution sequence to the frontier. Then the 
-controller will assign this sequence to Scheduler 1 (since Scheduler 2 has not yet returned), and Scheduler 1 will explore
+Controller will assign this sequence to Scheduler 1 (since Scheduler 2 has not yet returned), and Scheduler 1 will explore
 the last 2 traces (trace 5 and 6 from the sequential example). After both Scheduler 1 and 2 have returned the execution 
 will have finished since there will no more traces left to explore.
 
