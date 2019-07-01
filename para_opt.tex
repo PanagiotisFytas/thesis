@@ -180,7 +180,7 @@ If we were to not delete those suffixes, the size of the execution tree would ev
       \label{optexample}
   \end{figure*}
 
-In Figure \ref{optexample} we can se the pseudocode of $lastzero$ 2, were we have an array of 3 elements (initially all elements have
+In Figure \ref{optexample} we can see the pseudocode of $lastzero$ 2, were we have an array of 3 elements (initially all elements have
 a zero value) and three processes. The first process ($p$) searches the array for the zero element with the highest index. 
 The other two processes increase their assigned element by a value of 1.
 
@@ -211,7 +211,7 @@ the complete wakeup tree at some execution sequence $E$ cannot be known until we
 exploring all execution sequences which are ordered before $E$, according to the total order of our state space
 (Definition \ref{def:Ordered})
 
-\subsection{Performance Evaluation - Why such an approach cannot succeed}
+\subsection{Performance Evaluation}
 
 We are going to use the following two synthetic benchmarks to evaluate
 our first attempt in parallelizing the optimal-DPOR algorithm:
@@ -246,16 +246,16 @@ of 1.429 (on a test case with 70$\%$ planning time, if we consider that the expl
 speedup would be 1.429 = $100\over 70$, since the planning phase would still have to take place sequentially). 
 This reason, by itself, makes it impossible for our algorithm to achieve good performance and scalability.
 
-What is more, the rate with which new interleavings are planned for exploration, leads to schedulers not being sufficiently utilized throughout the complete execution of the algorithm. Specifically, we have noticed that the execution of the DPOR algorithm can be split into three consecutive phases. In the first phase, race detecting a single interleaving generates a large amount of interleavings that need to be explored. This means that, during this phase, the schedulers have enough work and are being kept utilized. During the second phase, race detecting an interleaving generates a relatively small amount of new interleavings that need to be explored. Generally, during this phase not enough work is being generated and the schedulers tend to stay idle. In the third phase,
+What is more, the rate with which new interleavings are planned for exploration leads to schedulers not being sufficiently utilized throughout the execution of the algorithm. Specifically, we have noticed that the execution of the DPOR algorithm can be split into three consecutive phases. In the first phase, race detecting a single interleaving generates a large amount of interleavings that need to be explored and therefore the exploration Frontier is relatively large. This means that the schedulers have enough work and are being kept utilized. During the second phase, race detecting an interleaving generates a relatively small amount of new interleavings that need to be explored. Generally, throughout this phase, not enough work is being generated and the schedulers tend to stay idle. In the third phase,
 barely any new interleavings are planned, until the complete state space has been explored, at which point the algorithm terminates. 
 
-This pattern can be 
+\graph{bottleneck_lastzero.png}{Planner Queue and Frontier sizes for the execution of lastzero.}
+
+This pattern becomes visible from Figure \ref{Planner Queue and Frontier sizes for the execution of lastzero.}.
+We have run our algorithm with four schedulers for the lastzero 7,8 and 9 benchmarks. 
+To create this graph we have taken measurements regarding the size of queue of the Planner and the exploration Frontier of the schedulers. The measurements are taken after either the exploration or the planning of an interleaving has finished. In this graph, the three aforementioned phases can be clearly observed. After the first phase ends, we notice that the relative large exploration Frontier that has been created, gets ``consumed" in an extremely fast rate, due to the fact that we have four scheduler consuming from it, while only one Planner producing in it. Also, like we mentioned before, the exploration of a single trace is significantly faster than its race detection. Consequently, during the second phase there are very few traces within the exploration Frontier and therefore, the schedulers stay underutilized. We can also notice from the graph that this effect intensifies while our state space increases. The main reason behind this is the fact that as the state space of a program increases, the planning of an interleaving becomes even more slow, compared to the exploration of an interleaving. 
 
 To make matters worse, our algorithm also has a significant overhead. As mentioned before, communication between
 the controller and the workers can be a substantial bottleneck. The parallel source-DPOR deals with it by assigning
-a state space to the workers, minimizing the need for communication. However, in the parallel optimal-DPOR algorithm
-the need for central planning leads to the scheduler having to report a trace back to the controller every sigle
-time an exploration reaches its end. Also, in this case, before the centralized planner can race detect a trace,
-we have to update this trace with the wakeup trees that ordered after the trace
-(Definition \ref{def:Ordered}) and have been inserted into the execution tree
-since the last time this trace was planned (Algorithm \ref{optcontrollerloop}).
+a state space to the workers, minimizing the need for communication. However, in this attempt the use of the centralized planner leads to the schedulers having to report a trace back to the controller every single
+time an exploration reaches its end.

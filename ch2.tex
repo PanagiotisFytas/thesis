@@ -14,7 +14,7 @@ commercially by various companies, including Ericsson, for a wide variety of lar
 \subsection{Concurrent Erlang}
 
 The main strength of Erlang stems from its built-in concurrency support. In the core of this 
-are the lightweight Erlang processes, each having its own program counter, (local ???) variables and call stack.
+are the lightweight Erlang processes, each having its own program counter, process dictionary and call stack.
 Additionally, Erlang implements its processes through the runtime system of BEAM (the VM of Erlang)
 and therefore they are not mapped to OS threads. These processes use minimal memory, can be task switched extremely fast, 
 can run in parallel and thousands of them can exist in a single machine.
@@ -49,8 +49,7 @@ two different nodes, two different processes can have the same local Pid.
 
 Distributed Erlang Programs can run on different nodes. An Erlang process can be spawned on any 
 node, local or remote. All primitives ($``!"$, \textit{receive}, etc.) operate over the network similarly as they
-would on the same node. Pid conflicts are avoided by using the global PIDs on operations
-that occur over the network (askme ???).
+would on the same node.
 
 \section{Testing Concurrent Programs}
 
@@ -59,7 +58,7 @@ The main reason behind this increased difficulty, is the non-deterministic way i
 threads are scheduled by computers. On a given input, a concurrent program may lead to different 
 results depending on how its processes were scheduled. Specifically, errors can exist only on particular
 interleavings, that may have a small probability of occurring, making normal testing methods ineffective in
-detecting the existence of such bugs. Therefore, in order to verify and test (???) concurrent programs it is
+detecting the existence of such bugs. Therefore, in order to test and verify concurrent programs it is
 essential that all possible interleavings are explored. \textit{Model Checking} does this by exploring the
 complete state space of a program. In realistic scenarios, this approach is extremely inefficient, since
 storing the state of each process can have extreme memory requirements \cite{Godefroid:1997:MCP:263699.263717}.
@@ -75,8 +74,8 @@ Such interleavings belong to the same \textit{Mazurkiewicz trace} \cite{10.1007/
 As a result, only a single interleaving from each different Mazurkiewicz trace needs to be examined in order
 to sufficiently test a program. This observation is utilized by various \textit{Partial Order Reduction} (POR) \cite{Godefroid1996, POR, 
 10.1007/3-540-53863-1_36}
-techniques, which examine at least one interleaving from different Mazurkiewicz traces in order to alleviate 
-the state space explosion that occurs when testing larger programs (??? askme).
+techniques, which try to examine at most one interleaving from different Mazurkiewicz traces in order to alleviate 
+the state space explosion that occurs when testing larger programs.
 
 POR algorithms try to avoid exploring redundant interleavings by maintaining information regarding potential races between different processes. 
 Such information can either be gained by \textit{statically} analyzing the code of the program \cite{Static1997},
@@ -98,7 +97,7 @@ occur in such a system \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
 \subsection{Abstraction Model}
 
 Our abstraction system assumes concurrent programs have a finite amount of processes and that
-the code executed is deterministic (????). Additionally, the state space of the program does not
+the code executes deterministically. Additionally, the state space of the program does not
 contain cycles and all execution sequences are considered to be finite (this does not exclude
 execution sequences which are blocked due to a deadlock).
 

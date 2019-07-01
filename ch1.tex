@@ -1,6 +1,6 @@
  \chapter{Introduction}
 
-Nowadays the necessity for concurrency is undeniable. 
+Nowadays, the necessity for concurrency is undeniable. 
 Moore's Law \cite{4785860} dictates that the number of
 transistors that can be placed inside a dense integrated circuit doubles roughly every two years.
 However, during the past years, energy and heat restrictions have significantly thwarted the ability 
@@ -21,7 +21,7 @@ Advances made in model checking have led to \textit{Stateless Model Checking} \c
 which systematically explores the state-space of a given program, without storing the global states, in order to verify
 that each reachable state satisfies a given property.
 Stateless model checking is a practical approach that does not have large memory requirements and has been implemented in
-tools such as    CHESS \cite{Musuvathi:2008:FRH:1855741.1855760} and Verisoft \cite{Godefroid:2005:SMC:1084665.1084674}.
+tools such as CHESS \cite{Musuvathi:2008:FRH:1855741.1855760} and Verisoft \cite{Godefroid:2005:SMC:1084665.1084674}.
 Still, this technique suffers from combinatorial explosion. However, different interleavings that can be obtained from each other by
 swapping adjacent and independent execution steps, can be considered equivalent.
 Partial Order Reduction (POR) \cite{Godefroid1996, POR, 10.1007/3-540-53863-1_36} algorithms utilize this observation to successfully diminish
@@ -37,7 +37,7 @@ DPOR algorithms that use persistent sets \cite{FlanaganDPOR, Lei:2006:RTC:124872
 been examined and parallel versions have been implement for Inspect \cite{Yang:2007:DDP:1770532.1770541} and Eta 
 \cite{Simsa2012ScalableDP}.
 
-On this thesis we are going to focus on the parallelization of Concuerror, a stateless model checker
+On this thesis, we are going to focus on the parallelization of Concuerror, a stateless model checker
 used for testing concurrent Erlang programs. Specifically, we are going to examine the parallelization
 of source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} and optimal-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014}, 
 which are the main algorithms implemented in Concuerror.
