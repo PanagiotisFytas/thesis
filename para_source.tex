@@ -67,7 +67,10 @@ are going to use multiple depth-first searches (by partitioning the frontier of 
 We are going to use a centralized $Controller$ who will be
 responsible for distributing the exploration
 frontier to different worker-schedulers. The Controller is
-also going to oversee the parallel exploration, so we avoid exploring more interleavings than the sequential version.
+also going to oversee the parallel exploration, so we avoid exploring more interleavings than the sequential version. In order to do this, the controller will keep track of the frontier that is being explored in the form of an $execution$ $tree$. In short, the execution tree represents the state space of our program.
+Nodes of the execution tree represent non-deterministic choice points and edges
+represent program state transitions. A path from the root of the tree to a leaf then
+uniquely encodes a program an execution sequence. We are also going to use the term branch to refer to execution sequences within the execution tree.
 
 In order to avoid redundant explorations, we are going to use the
 concept of $ownership$ \cite{Simsa2012ScalableDP} of a node of a state space. A scheduler exclusively owns a node of the state space if it is
@@ -91,7 +94,7 @@ For example, if a scheduler is responsible
 for exploring an execution sequence $E$ that has a single backtrack 
 entry of $p$ at $E$, then that scheduler owns every node
 that is a descendant of $E.p$ i.e., it owns every execution sequence
-that begins with the prefix $E.p$ ($[E.p]_\simeq$). Now lets assume that during the exploration of  $[E.p]_\simeq$, $r$ has been added at
+that begins with the prefix $E.p$ (or else, the complete subtree that is rooted at $E.p$). Now lets assume that during the exploration of the subtree that is rooted at $E.p$, $r$ has been added at
 the backtrack at $E$. Since this node is disputed, the scheduler
 will not explore this backtrack entry. Instead, it will report
 back to the Controller, in order to determine whether some other entry
@@ -136,7 +139,7 @@ functions. Finally, it will block until it receives a response from a scheduler.
     \label{partition}
     \Fn{partition($Frontier$, $N$)}{
         \For{all E $\in$ Frontier}{
-            \While{ $total\_backtrack\_entries(E) > 1$ \textbf{ and } $size(Frontier) < N$}{
+            \While{$total\_backtrack\_entries(E) > 1$ \textbf{and} $size(Frontier) < N$}{
                 $E' \leftarrow $ \textnormal{the smallest prefix of $E$
                 that has a backtrack entry} \;
                 $p \leftarrow \textnormal{ a process} \in backtrack(E') $\;
@@ -147,7 +150,7 @@ functions. Finally, it will block until it receives a response from a scheduler.
                 \textnormal{add $E_c'$ to $ Frontier$}\;
             }
         }
-        return $Frontier$\;
+        \Return $Frontier$\;
     }
 \end{algorithm}
 
@@ -165,13 +168,13 @@ to exploring duplicate interleavings.
     \Fn{explore\_loop($E_0$, $Budget$)}{
         $StartTime \leftarrow get\_time()$\;
         $ E \leftarrow E_0$\;
-        \Repeat{$CurrentTime - StartTime > Budget \textbf{ or  }size(E'') \leq size(E_0)$}{
+        \Repeat{$CurrentTime - StartTime > Budget \textbf{ or } size(E) \leq size(E_0)$}{
             $ E' \leftarrow explore(E)$\;
-            $ plan\_more\_interleavings(E') $\;
-            $ E'' \leftarrow get\_next\_execution\_sequence(E')$\;
+            $ E' \leftarrow plan\_more\_interleavings(E') $\;
+            $ E \leftarrow get\_next\_execution\_sequence(E')$\;
             $CurrentTime \leftarrow get\_time()$\;
         }
-        \textnormal{\textbf{send}  $E''$ to Controller} \;
+        \textnormal{\textbf{send}  $E$ to Controller} \;
     }
 \end{algorithm}
 
@@ -200,7 +203,7 @@ terminates, the backtrack points added to the prefixes of $E_0$ will be reported
         \If{$E'$ has at least one backtrack entry}{
                 \textnormal{add $E'$ to $Frontier$}\;
         }
-        return $Frontier,T$;
+        \Return $Frontier,T$;
     }
 \end{algorithm}
 

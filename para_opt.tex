@@ -12,7 +12,7 @@ an improved parallel optimal-DPOR algorithm.
 
 Parallelizing the optimal-DPOR algorithm is significantly more complicated than source-DPOR. We do know that whenever a call to 
 $Explore(E, Sleep, WuT)$ returns during Algorithm \ref{optimal}, then for all maximal execution sequences
-of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}. In other words, calls to $Explore(E, Sleep, WuT)$ guarantee that
 However, the complete $WuT$ at some execution sequence $E$ cannot be known until we have completed
 exploring all execution sequences which are ordered before $E$, according to the total order of our state space
 (Definition \ref{def:Ordered}). This happens because the $insert_{[E']}(v,wut(E'))$ function can add
@@ -42,7 +42,7 @@ many interleavings in parallel but race detects each explored interleaving seque
 
 Due to the fact that we need to have parallel exploration of interleavings but sequential planning, we need to decouple
 the normal exploration loop of a scheduler into two different parts: $state$ $exploration$ and $race$ $detection-planning$.
-Our workers (the Schedulers) will be responsible for the first part. For the second part, we are going to use a centralized
+Our workers (the schedulers) will be responsible for the first part. For the second part, we are going to use a centralized
 Planner. However, in order to be able to better distribute the available work to the schedulers when the Planner is busy,
 we are also going to use a Controller.
 
@@ -55,7 +55,7 @@ we are also going to use a Controller.
         $T \leftarrow$ an execution tree rooted at $E_0$\;
         $PlannerQueue \leftarrow empty$\;
         \While{$size(Frontier) > 0$ \textnormal{and} $ size(PlannerQueue) > 0$} {
-            $partition(Frontier)$\;
+            $Frontier \leftarrow partition(Frontier)$\;
             \While{exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
                 $E_c \leftarrow$ a copy of $E$\;
                 $spawn(S, explore(E_c))$\;
@@ -101,11 +101,11 @@ has been reached and reports back that execution sequence to the Controller.
                 $E_c' \leftarrow \textnormal{ a copy of } E'$\;
                 \textnormal{mark $v$ as $not\_owned$ at $ wut(E')$}\;
                 $\{Prefix, v, Suffix\} \leftarrow split\_wut\_at(v, wut(E_c'))$\;
-                \textnormal{add the first processes of $Prefix$ to $ sleep(E_c')$}\;
-                \textnormal{mark $ Suffix $ as $not\_owned$ at $ wut(E_c')$}\;
+                \textnormal{mark $Prefix$ and $Suffix$ as $not\_owned$ at $ wut(E_c')$}\;
                 \textnormal{add $E_c'$ to $ Frontier$}\;
             }
         }
+        \Return $Frontier$\;
     }
 
 \end{algorithm}
@@ -113,10 +113,10 @@ has been reached and reports back that execution sequence to the Controller.
 Partitioning the exploration frontier (Algorithm \ref{optpartition}) has two main differences, compared to the parallel source-DPOR.
 Firstly, the frontier gets partitioned completely, so we can maximize the parallelization of the exploration phase. 
 Secondly, the entries that are distributed from one execution sequence, are not simply removed from the backtrack and added to
-the sleep set. It is vital here to maintain the correct ordering between the interleavings (Definition \ref{def:Ordered}), because during the exploration phase of the optimal-DPOR algorithm, branches can be removed
+the sleep set. It is vital here to maintain the correct ordering between the interleavings (Definition \ref{def:Ordered}), because during the exploration phase of the optimal-DPOR algorithm, sequences can be removed
 from the wakeup tree. Maintaining the ordering will keep this behavior intact in the parallel version. Therefore,
 the given entry is marked as $not\_owned$ at the distributed sequence. The function  $split\_wut\_at(v, wut(E_c'))$
-splits the copy of the wakeup tree to three parts: the $Prefix$ (the wakeup tree entries ordered before the branch $v$), the leaf $v$
+splits the copy of the wakeup tree to three parts: the $Prefix$ (the wakeup tree entries ordered before the sequence $v$), the leaf $v$
 and the $Suffix$ (the wakeup entries ordered after $v$). The first processes processes of the entries of
 the $Prefix$ are added to the sleep set at the new execution sequence $E_c'$ (e.g. if $p.q.r$ is a leaf in $Prefix$, then $p$ is added to
 $sleep(E_c')$). The $Suffix$ entries are marked as $not\_owned$ at $E_c'$.
@@ -252,10 +252,80 @@ barely any new interleavings are planned, until the complete state space has bee
 \graph{bottleneck_lastzero.png}{Planner Queue and Frontier sizes for the execution of lastzero.}
 
 This pattern becomes visible from Figure \ref{Planner Queue and Frontier sizes for the execution of lastzero.}.
-We have run our algorithm with four schedulers for the lastzero 7,8 and 9 benchmarks. 
+We have run our algorithm with four schedulers for the lastzero 7, 8 and 9 benchmarks. 
 To create this graph we have taken measurements regarding the size of queue of the Planner and the exploration Frontier of the schedulers. The measurements are taken after either the exploration or the planning of an interleaving has finished. In this graph, the three aforementioned phases can be clearly observed. After the first phase ends, we notice that the relative large exploration Frontier that has been created, gets ``consumed" in an extremely fast rate, due to the fact that we have four scheduler consuming from it, while only one Planner producing in it. Also, like we mentioned before, the exploration of a single trace is significantly faster than its race detection. Consequently, during the second phase there are very few traces within the exploration Frontier and therefore, the schedulers stay underutilized. We can also notice from the graph that this effect intensifies while our state space increases. The main reason behind this is the fact that as the state space of a program increases, the planning of an interleaving becomes even more slow, compared to the exploration of an interleaving. 
 
 To make matters worse, our algorithm also has a significant overhead. As mentioned before, communication between
 the controller and the workers can be a substantial bottleneck. The parallel source-DPOR deals with it by assigning
 a state space to the workers, minimizing the need for communication. However, in this attempt the use of the centralized planner leads to the schedulers having to report a trace back to the controller every single
 time an exploration reaches its end.
+
+\section{Scalable Parallel optimal-DPOR}
+
+\subsection{Basic Idea}
+
+Like we mentioned in the previous section, trying to develop a parallel optimal-DPOR algorithm based on the parallel source-DPOR has two main issues.
+
+Firstly, in the source-DPOR algorithm, the backtrack is a set of processes (Definition \ref{def:Source Sets}), which means it contains single steps that the algorithm is going to ``take" in the future. In the parallel algorithm, as we mentioned in Chapter \ref{paradpor}, when a backtrack entry $p$ at an execution sequence $E$ is assigned to a scheduler, that scheduler will own every trace that starts with $E.p$ i.e., the scheduler can explore the subtree that is rooted at $E$, without reporting back to the controller (unless its Budget is not exceeded). 
+However, in optimal-DPOR, backtrack entries are trees that contain sequences of steps that will be explored. A scheduler could not own the tree due to the fact that in Algorithm \ref{optimal}, new fragments keep getting inserted into the wakeup trees and therefore, the trees are not complete until they are about to be explored. A wakeup tree is complete, when its root is the smallest node w.r.t the ordering of the tree ($p = min_{\prec}\{ p \in wut(E)\}$). At each point throughout the execution of the algorithm, there exists only one wakeup tree with that property. 
+Nonetheless, any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
+\cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that, a scheduler can own a subtree rooted at a leaf sequence of the wakeup tree. We are going to modify the concept of ownership as follows:
+\begin{itemize}
+\item A leaf sequence can be marked as $owned$ in the wakeup tree of a scheduler. This means that this scheduler also own every node in the subtree rooted at that execution sequence. For example, if $v$ is an owned leaf sequence in $wut(E)$ of some scheduler, then that scheduler owns every execution sequence that has a prefix of $E.v$.
+\item A leaf sequence is marked as $not\_owned$ when some other scheduler is responsible for the corresponding subtree.
+\item All other nodes are considered $disputed$. When a leaf sequence is inserted underneath a disputed node, that leaf sequence is considered disputed.
+\end{itemize}
+
+The second issue has to do with the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
+rearranging the sequence of the \textbf{non-racing} events within $v$. This means that two execution sequences, while different,
+may be equivalent. Therefore, the ownership of disputed nodes cannot be resolved by simply checking whether those nodes exists in the execution tree.
+However, we can modify $insert_{[E']}(v,wut(E'))$ to insert execution sequence within subtrees of the execution tree, instead of wakeup trees. If a disputed sequence can be inserted into the execution tree, then this means that no other scheduler has discovered an equivalent execution sequence and therefore, ownership is claimed over that execution sequence. Otherwise, this sequence is marked as $not\_owned$.
+
+\subsection{Algorithm}
+
+The Controller has the same logic as with the one from parallel source-DPOR (Algorithm \ref{controllerloop}). Similarly with the source-DPOR algorithm, The Controller maintains a $Frontier$, 
+which is a set of execution sequences $E$, and an execution tree $T$, which contains
+as branches the execution sequences of the $Frontier$. For as long as there exists an execution sequence at the $Frontier$ 
+($Frontier \neq \emptyset$), the Controller will partition its $Frontier$ to at most $N$ execution sequences. Then, the Controller
+will try to assign all of its unassigned execution sequences to any idle scheduler, by spawning $explore\_loop(E_c, Budget)$
+functions. Finally, it will block until it receives a response from a scheduler.
+
+\begin{algorithm}
+    \caption{Optimal Frontier Partitioning - Scalable Algorithm}
+    \label{optpartition2}
+    \Fn{partition($Frontier$, $N$)}{
+        \For{all E $\in$ Frontier}{
+            \While{$total\_owned\_leaf\_sequences(E) > 1$ \textbf{and} $size(Frontier) < N$}{
+                $E' \leftarrow $ \textnormal{the smallest prefix of $E$
+                that has a backtrack entry} \;
+                $v \leftarrow \textnormal{ the smallest (w.r.t. $\prec$) $owned$ leaf sequence} \in wut(E') $\;
+                $E_c' \leftarrow \textnormal{ a copy of } E'$\;
+                \textnormal{mark $v$ as $not\_owned$ at $ wut(E')$}\;
+                $\{Prefix, v, Suffix\} \leftarrow split\_wut\_at(v, wut(E_c'))$\;
+                \textnormal{mark $Prefix$ and $Suffix$ as $not\_owned$ at $ wut(E_c')$}\;
+                \textnormal{add $E_c'$ to $ Frontier$}\;
+            }
+        }
+        \Return $Frontier$\;
+    }
+
+\end{algorithm}
+t
+The $partitioning$ phase (Algorithm \ref{optpartition2}) works pretty similarly with Algorithm \ref{partition}. The main difference here, is that when we distribute sequences from the wakeup tree, we do not simply add them on the sleep set of the original execution sequence, but we mark them as not owned. The reason behind this, can be seen at lines 20-21 of Algorithm \ref{optimal}. After optimal-DPOR has finished exploring a wakeup tree at some execution sequence $E$,
+the root of the wakeup tree is added at the sleep set at $E$ and sequences that begin with that root are removed from the remaining wakeup trees at $E$. In order to keep this behavior intact, we have modified the optimal-DPOR exploration algorithm to simply add we mark execution sequences that are assigned to different schedulers are $not_owned$
+
+\begin{algorithm}
+    \caption{Scheduler Exploration Loop - Scalable optimal-DPOR}
+    \label{explore_loop_opt}
+    \Fn{explore\_loop($E_0$, $Budget$)}{
+        $StartTime \leftarrow get\_time()$\;
+        $ E \leftarrow E_0$\;
+        \Repeat{$CurrentTime - StartTime > Budget \textbf{ or }(ownership(E) \neq owned \textbf{ and } WuT(E) \textnormal{ has no $owned$ sequences})$}{
+            $ E' \leftarrow explore(E)$\;
+            $ E' \leftarrow plan\_more\_interleavings(E') $\;
+            $ E \leftarrow get\_next\_execution\_sequence(E')$\;
+            $CurrentTime \leftarrow get\_time()$\;
+        }
+        \textnormal{\textbf{send}  $E$ to Controller} \;
+    }
+\end{algorithm}
