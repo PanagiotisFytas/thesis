@@ -83,6 +83,38 @@ def plots(fls):
     plt.close()
     return
 
+def stackplots(name, algo):
+    fl1 = name + '_' + algo +'.txt'
+
+
+    schedulers = []
+    be = []
+    oc = []
+    done = []
+
+    with open(fl1) as f:
+        for line in f:
+            lin = line.split()
+            print(lin)
+            schedulers.append(int(lin[0]))
+            be.append(int(lin[1]))
+            oc.append(int(lin[2]))
+            done.append(int(lin[3]))
+
+    print (len(schedulers), len(be), len(oc) ,len(done))
+    y = np.vstack([be, oc, done])
+
+    fig, ax = plt.subplots()
+    ax.stackplot(schedulers, be, oc, done, labels=['Budget Exceeded', 'Disputed Entry Found', 'Finished'], colors=['darkblue','r','g'])
+    ax.legend(loc='upper left')
+    plt.xlabel('Schedulers')
+    plt.savefig(name + '_' + algo + '_stack.png')
+    
+    plt.show()
+    # fig, ax = plt.subplots()
+    # ax.stackplot(x, y)
+    # plt.show()
+    plt.close()
 
 if __name__ == "__main__":
         plot('indexer15')
