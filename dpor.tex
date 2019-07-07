@@ -3,9 +3,9 @@
 
 \section{Basic DPOR Concepts}
 
-Generally, DPOR algorithms use a depth-first backtrack search to explore the state-space of a concurrent system.
+Generally, DPOR algorithms use a depth-first backtrack search to explore the state space of a concurrent system.
 This exploration is driven by two basic concepts: \textit{persistent sets} and \textit{sleep sets}, which make sure to explore a
-sufficient portion (at least one interleaving from different Mazurkiewicz traces) of the state-space,
+sufficient portion (at least one interleaving from different Mazurkiewicz traces) of the state space,
 while trying to minimize any unnecessary exploration.
 
 Intuitively, a persistent set at a state $s$ is (specific) subset of $enabled(s)$ whose exploration guarantees that all
@@ -13,7 +13,7 @@ non-equivalent interleavings (from different Mazurkiewicz traces) will be explor
 DPOR algorithms \cite{FlanaganDPOR}, on the assumption 
 (that is taken into account by our abstraction) that our state space is acyclic and finite.
 The way that such sets are constructed differs from paper to paper \cite{FlanaganDPOR, Lei:2006:RTC:1248722.1248743, 10.1007/3-540-53863-1_36},
-and those variations can lead to different degrees of state-space reduction.
+and those variations can lead to different degrees of state space reduction.
 
 The sleep set technique, being complimentary to persistent sets (it does not contribute to the soundness of algorithm),
 aims to further reduce the number of the explored interleavings.

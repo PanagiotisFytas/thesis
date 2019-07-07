@@ -268,19 +268,19 @@ time an exploration reaches its end.
 Like we mentioned in the previous section, trying to develop a parallel optimal-DPOR algorithm based on the parallel source-DPOR has two main issues.
 
 Firstly, in the source-DPOR algorithm, the backtrack is a set of processes (Definition \ref{def:Source Sets}), which means it contains single steps that the algorithm is going to ``take" in the future. In the parallel algorithm, as we mentioned in Chapter \ref{paradpor}, when a backtrack entry $p$ at an execution sequence $E$ is assigned to a scheduler, that scheduler will own every trace that starts with $E.p$ i.e., the scheduler can explore the subtree that is rooted at $E$, without reporting back to the controller (unless its Budget is not exceeded). 
-However, in optimal-DPOR, backtrack entries are trees that contain sequences of steps that will be explored. A scheduler could not own the tree due to the fact that in Algorithm \ref{optimal}, new fragments keep getting inserted into the wakeup trees and therefore, the trees are not complete until they are about to be explored. A wakeup tree is complete, when its root is the smallest node w.r.t the ordering of the tree ($p = min_{\prec}\{ p \in wut(E)\}$). At each point throughout the execution of the algorithm, there exists only one wakeup tree with that property. 
+However, in optimal-DPOR, backtrack entries are trees that contain, as nodes, sequences of steps that will be explored. A scheduler could not own the tree due to the fact that in Algorithm \ref{optimal}, new fragments keep getting inserted into the wakeup trees and therefore, the trees are not complete until they are about to be explored. A wakeup tree is complete, when all the smaller nodes w.r.t the ordering of the tree ($p = min_{\prec}\{ p \in wut(E)\}$) have been explored. At each point throughout the execution of the algorithm, there exists only one wakeup tree with that property. 
 Nonetheless, any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$
 \cite{AbdullaAronisJohnssonSagonasDPOR2014}. This means that, a scheduler can own a subtree rooted at a leaf sequence of the wakeup tree. We are going to modify the concept of ownership as follows:
 \begin{itemize}
-\item A leaf sequence can be marked as $owned$ in the wakeup tree of a scheduler. This means that this scheduler also own every node in the subtree rooted at that execution sequence. For example, if $v$ is an owned leaf sequence in $wut(E)$ of some scheduler, then that scheduler owns every execution sequence that has a prefix of $E.v$.
+\item A leaf sequence can be marked as $owned$ in the wakeup tree of a scheduler. This means that this scheduler also own every node in the subtree rooted at that leaf. For example, if $v$ is an owned leaf sequence in $wut(E)$ of some scheduler, then that scheduler owns every execution sequence that has a prefix of $E.v$.
 \item A leaf sequence is marked as $not\_owned$ when some other scheduler is responsible for the corresponding subtree.
 \item All other nodes are considered $disputed$. When a leaf sequence is inserted underneath a disputed node, that leaf sequence is considered disputed.
 \end{itemize}
 
-The second issue has to do with the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
-rearranging the sequence of the \textbf{non-racing} events within $v$. This means that two execution sequences, while different,
+The second issue has to do with the fact that the $insert_{[E]}(v,wut(E))$ function may end up
+inserting a different the sequence (but an equivalent one)than $v$. This means that two leaf entries, while different,
 may be equivalent. Therefore, the ownership of disputed nodes cannot be resolved by simply checking whether those nodes exists in the execution tree.
-However, we can modify $insert_{[E']}(v,wut(E'))$ to insert execution sequence within subtrees of the execution tree, instead of wakeup trees. If a disputed sequence can be inserted into the execution tree, then this means that no other scheduler has discovered an equivalent execution sequence and therefore, ownership is claimed over that execution sequence. Otherwise, this sequence is marked as $not\_owned$.
+However, we can modify $insert_{[E]}(v,wut(E))$ to insert execution sequence within subtrees of the execution tree, instead of wakeup trees. If a disputed sequence can be inserted into the execution tree, then this means that no other scheduler has discovered an equivalent execution sequence and therefore, ownership is claimed over that execution sequence. Otherwise, this sequence is marked as $not\_owned$.
 
 \subsection{Algorithm}
 
@@ -311,9 +311,9 @@ functions. Finally, it will block until it receives a response from a scheduler.
     }
 
 \end{algorithm}
-t
+
 The $partitioning$ phase (Algorithm \ref{optpartition2}) works pretty similarly with Algorithm \ref{partition}. The main difference here, is that when we distribute sequences from the wakeup tree, we do not simply add them on the sleep set of the original execution sequence, but we mark them as not owned. The reason behind this, can be seen at lines 20-21 of Algorithm \ref{optimal}. After optimal-DPOR has finished exploring a wakeup tree at some execution sequence $E$,
-the root of the wakeup tree is added at the sleep set at $E$ and sequences that begin with that root are removed from the remaining wakeup trees at $E$. In order to keep this behavior intact, we have modified the optimal-DPOR exploration algorithm to simply add we mark execution sequences that are assigned to different schedulers are $not_owned$
+the beginning process of that wakeup tree is added at the sleep set at $E$ and sequences that begin with that process are removed from the remaining wakeup trees at $E$. In order to keep this behavior intact, we have modified the optimal-DPOR exploration phase, so that when encountering nodes, whose every child is $not\_owned$, those nodes are added to the sleep set and the appropriate sequences are removed from the wakeup tree.
 
 \begin{algorithm}
     \caption{Scheduler Exploration Loop - Scalable optimal-DPOR}
@@ -330,3 +330,5 @@ the root of the wakeup tree is added at the sleep set at $E$ and sequences that 
         \textnormal{\textbf{send}  $E$ to Controller} \;
     }
 \end{algorithm}
+
+The updated 

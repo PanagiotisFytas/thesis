@@ -1,12 +1,8 @@
  \chapter{Introduction}
 
 Nowadays, the necessity for concurrency is undeniable. 
-Moore's Law \cite{4785860} dictates that the number of
-transistors that can be placed inside a dense integrated circuit doubles roughly every two years.
-However, during the past years, energy and heat restrictions have significantly thwarted the ability 
-to accelerate a single chip. Multithreaded architectures
-is the main way with which modern technology can keep up with Moore's Law and therefore, concurrent 
-programming is essential for scaling software to modern hardware. Apart from that, through concurrency, it becomes possible for 
+As multithreaded architectures have prevailed on modern systems, concurrent 
+programming is essential for scaling software to modern hardware and speeding up the execution time of programs0. Apart from that, through concurrency, it becomes possible for 
 long-running tasks to not delay short running ones and consequently, concurrent programs offer an increased availability 
 of services making them essential for numerous applications, such as web services. 
 
@@ -14,34 +10,44 @@ Nevertheless, due to the fact that concurrent processes and threads share resour
 concurrent programming is a more challenging endeavor, compared to sequential programming. To make matters worse, 
 processes are scheduled in a non-deterministic manner, which can lead to errors that may occur only on specific 
 rare interleavings. Therefore, concurrency bugs can be extremely hard to detect and reproduce, making techniques such as
-unit testing, ineffective in detecting such errors. Testing concurrent programs requires the systematic exploration
+unit testing, ineffective in detecting such errors. Testing and verifying concurrent programs requires the systematic exploration
 of all possible interleavings (or at least a sufficient subset of those).
 
 Advances made in model checking have led to \textit{Stateless Model Checking} \cite{Godefroid:1997:MCP:263699.263717}, 
-which systematically explores the state-space of a given program, without storing the global states, in order to verify
+which systematically explores the state space of a given program, without storing the global states, in order to verify
 that each reachable state satisfies a given property.
 Stateless model checking is a practical approach that does not have large memory requirements and has been implemented in
-tools such as CHESS \cite{Musuvathi:2008:FRH:1855741.1855760} and Verisoft \cite{Godefroid:2005:SMC:1084665.1084674}.
+tools such as Verisoft \cite{Godefroid:2005:SMC:1084665.1084674}.
 Still, this technique suffers from combinatorial explosion. However, different interleavings that can be obtained from each other by
 swapping adjacent and independent execution steps, can be considered equivalent.
 Partial Order Reduction (POR) \cite{Godefroid1996, POR, 10.1007/3-540-53863-1_36} algorithms utilize this observation to successfully diminish
-the size of the explored state-space. Dynamic Partial Order Reduction 
+the size of the explored state space. Dynamic Partial Order Reduction 
 (DPOR) \cite{FlanaganDPOR, AbdullaAronisJohnssonSagonasDPOR2014} algorithms manage to achieve an even increased reduction,
 by detecting dependencies more accurately. DPOR techniques have been successfully implemented in tools like Concuerror 
-\cite{6569727, Gotovos:2011:TDC:2034654.2034664}, Nidhugg \cite{Abdulla:2015:SMC:2945565.2945622}, Inspect \cite{yang2008inspect}
+\cite{6569727, Gotovos:2011:TDC:2034654.2034664}, Nidhugg \cite{Abdulla:2015:SMC:2945565.2945622}, Inspect \cite{Yang:2007:DDP:1770532.1770541}
 and Eta \cite{simsa2011efficient}.
 
 Parallelizing DPOR algorithms is essential in order to make them scalable to modern computer architectures, but also to potentially 
-achieve significant speedups that will alleviate the effect of the exponential state-space explosion. The parallelization of
+achieve significant speedups that will alleviate the effect of the exponential state space explosion. The parallelization of
 DPOR algorithms that use persistent sets \cite{FlanaganDPOR, Lei:2006:RTC:1248722.1248743, 10.1007/3-540-53863-1_36} has already been 
-been examined and parallel versions have been implement for Inspect \cite{Yang:2007:DDP:1770532.1770541} and Eta 
+been examined and parallel versions have been implement for Inspect \cite{yang2008inspect} and Eta 
 \cite{Simsa2012ScalableDP}.
 
+\section{Aim of this Thesis}
+
 On this thesis, we are going to focus on the parallelization of Concuerror, a stateless model checker
-used for testing concurrent Erlang programs. Specifically, we are going to examine the parallelization
-of source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} and optimal-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014}, 
-which are the main algorithms implemented in Concuerror.
+used for testing concurrent Erlang programs. Specifically, we are going to: 
 
+\begin{itemize}
+\item Develop parallel versions for two DPOR algorithms: source-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014} and optimal-DPOR \cite{AbdullaAronisJohnssonSagonasDPOR2014}.
+\item Implement those parallel algorithms in Concuerror.
+\item Evaluate the performance of our implementation.
 
+\end{itemize}
 
+\section{Overview}
 
+In Chapter \ref{sec:background} we provide basic background information concerning Erlang, Concuerror and the abstraction used to model concurrent systems. In Chapter \ref{dpor} we describe the sequential source-DPOR and optimal-DPOR algorithms. In Chapters \ref{paradpor} and \ref{paradpor_opt} we present the parallel version we have developed for source-DPOR and optimal-DPOR, respectively. In Chapter 
+\ref{conc_mods} we describe the main issues we encountered while implementing our parallel algorithms in Concuerror. In Chapter 
+\ref{perfresults} we present and evaluate the performance achieved by our implementation. Finally, in Chapter \ref{conclusion}
+we summarize the previous chapters and we examine possible extensions of our work.
