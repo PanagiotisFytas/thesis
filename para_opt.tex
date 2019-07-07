@@ -331,4 +331,12 @@ the beginning process of that wakeup tree is added at the sleep set at $E$ and s
     }
 \end{algorithm}
 
-The updated 
+The scheduler exploration loop (Algorithm \ref{explore_loop_opt})mostly remains the same. We have simply changed the termination
+check to reflect the change in the concept of ownership. Lets not here, that when $get\_next\_execution\_sequence(E')$ finds nodes that are of $not\_owned$ ownership, the initial process $p$ of those nodes gets added to the appropriate sleep set and the sequences of form begin $p.w$ get removed from the appropriate wakeup tree. In other words, this is responsible for lines 20-21 of Algorithm \ref{optimal}.
+
+The pseudocode of the handling of the scheduler response remains the same as in Algorithm \ref{response}. However the $update\_execution\_tree(E, T)$ function changes. This functions iterates over the execution sequence and the execution tree simultaneously,
+and for any disputed wakeup tree leaves that are found in the execution sequence a modified version of $insert_{[E]}(v,wut(E))$ is called.
+This version tries to insert the leaves from the wakeup trees of the execution sequence to the execution tree. If it succeeds, it claims ownership over this leaf and over every equivalent leaf. If no insertion is made, this means that some other scheduler has claimed ownership over an equivalent leaf and therefore, this leaf is marked as $not\_owned$ in the execution sequence $E$.
+
+When updating the execution tree, we also delete parts from the execution tree that have already been explored.
+Lastly, the load balancing mechanism remains the same with the parallel source-DPOR algorithm.

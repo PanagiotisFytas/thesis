@@ -248,7 +248,7 @@ Setting this limit to double the amount of schedulers, produces decent results f
 Smaller $Budget$ values lead to more balanced workload, since the work is distributed more frequently. However,
 extremely low values may lead to an increased communication overhead between the Controller and the schedulers.
 This can also cause the Controller to become a significant bottleneck. The best way to deal with this,
-is to pick an initial value $Budget$ of around 1-10 seconds. When a scheduler starts a new exploration,
+is to pick an initial value $Budget$ of around 10 seconds. When a scheduler starts a new exploration,
 the value of its budget will be dynamically assigned by the Controller depending on the amount of
 idle schedulers. For instance, the first execution should have a budget of $Budget \over n$ were $n$ is the total amount of
 schedulers, which are all idle. When half the schedulers are idle, this value should be $Budget \over 2$, etc. This makes it possible to have
