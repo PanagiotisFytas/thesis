@@ -1,14 +1,16 @@
 \begin{center}
-\begin{tabular}{ |c|c|c|c|c| }
+\begin{tabular}{ |c|c|c|c|c|c|c| }
 \hline
-Benchmark & Traces for& Traces for & Time for& Time for\\
- & Source-DPOR & Optimal-DPOR & Source-DPOR & Optimal-DPOR \\
+Benchmark & Traces for& Traces for & Time for& Time for parallel& Time for& Time for parallel \\
+ & source-DPOR & optimal-DPOR & source-DPOR & source-DPOR with 1 scheduler & optimal-DPOR & optimal-DPOR with 1 scheduler \\
 \hline \hline
-lastzero 11 & 60073 & 7168 & 50m39.201s & 23m32.843s \\
+lastzero 11 & 60073 & 7168 & 49m8.510s & 53m59.169s & 14m8.266s & 17m50.494s\\
 \hline
-indexer 15 &  4096 & 4096 & 18m40.386s & 12m45.39\\
+indexer 15 &  4096 & 4096 & TODO & TODO & TODO & TODO\\
 \hline
-readers 15 &  32768 & 32768 & 39m17.533s & 52m43.585s \\
+readers 15 &  32768 & 32768 & 37m68.865s & 46m28.711s  & 51m40.792s & 67m50.643s \\
+\hline
+rush hour &  46656 & 46656 & 52m36.889s &  56m3.521s & 51m11.184s &  58m32.962s \\
 \hline
 \end{tabular}
 \end{center}

@@ -12,7 +12,8 @@ an improved parallel optimal-DPOR algorithm.
 
 Parallelizing the optimal-DPOR algorithm is significantly more complicated than source-DPOR. We do know that whenever a call to 
 $Explore(E, Sleep, WuT)$ returns during Algorithm \ref{optimal}, then for all maximal execution sequences
-of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}. In other words, calls to $Explore(E, Sleep, WuT)$ guarantee that
+of form $E.w$, the algorithm has explored some execution sequence $E'$ which is in $[E.w]_\simeq$ \cite{AbdullaAronisJohnssonSagonasDPOR2014}. In other words, calls to $Explore(E, Sleep, WuT)$ guarantee that the complete subtree rooted
+at $E$ will be explored.
 However, the complete $WuT$ at some execution sequence $E$ cannot be known until we have completed
 exploring all execution sequences which are ordered before $E$, according to the total order of our state space
 (Definition \ref{def:Ordered}). This happens because the $insert_{[E']}(v,wut(E'))$ function can add
@@ -24,8 +25,8 @@ scheduler inserts a fragment into a wakeup tree owned by a different scheduler, 
 fragment (or a different but equivalent fragment) was indeed explored. As a result, the concept of the ownership of a 
 backtrack entry, as defined in Chapter \ref{paradpor}, cannot remain the same for the optimal-DPOR algorithm.
 
-Another main issue with optimal-DPOR, is the fact that the $insert_{[E']}(v,wut(E'))$ function may end up
-rearranging the sequence of the events within $v$. This means that two execution sequences, while different,
+Another main issue with optimal-DPOR, is the fact that the $insert_{[E]}(v,wut(E))$ function may end up
+ and inserting at $wut(E)$ and execution sequence that is different than $v$ (but it will lead exploring an equivalent subtree). This means that two execution sequences, while different,
 may be equivalent. This can potentially lead to different schedulers inserting in their
 wakeup trees execution sequences that while different, may produce equivalent interleavings and therefore, the optimality
 of the algorithm could be lost.
@@ -224,7 +225,7 @@ our first attempt in parallelizing the optimal-DPOR algorithm:
 \end{itemize}
 
 Our parallel optimal-DPOR fails to achieve any type of speedup, as depicted in Figure 
-\ref{Execution time for readers 10 by optimal-DPOR.}. Table \ref{Parallel Optimal-DPOR performance.}
+\ref{Execution time for readers 10 by optimal-DPOR.}. Table \ref{Parallel optimal-DPOR performance.}
 holds information about how our implementation runs on various test cases. The exploration and planning
 time rows show what percentage of the time of the sequential algorithm is spend on exploring and planning interleavings respectively.
 Those measurements will help us explain the reason for this lack of speedup.
@@ -232,7 +233,7 @@ Those measurements will help us explain the reason for this lack of speedup.
 \mediumGraph{scripts/readers10_timedd.png}{Execution time for readers 10 by optimal-DPOR.}
 
 
-\smalltabular{"tables/opttab.tex"}{Parallel Optimal-DPOR performance.}
+\smalltabular{"tables/opttab.tex"}{Parallel optimal-DPOR performance.}
 
 \subsection{Performance Analysis}
 

@@ -24,19 +24,19 @@ First we are going to give a brief overview of the programs tested:
     index. The other $N$ processes read an array element and update the next one.
 \end{itemize}
 
-Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks} contains information about the traces explored and duration of those
+Table \ref{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks.} contains information about the traces explored and duration of those
 explorations for the sequential versions of Source-DPOR and Optimal-DPOR.
 
-\smalltabular{"tables/synthetic_unbounded.tex"}{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks}
+\smalltabular{"tables/synthetic_unbounded.tex"}{Sequential Source-DPOR vs Optimal-DPOR for our benchmarks.}
 
-The benchmarks were performanced on a multiprocessor with 64 AMD Opteron 6276(2.3 GHz) cores, 126 GB of memory, running
+The benchmarks were performed on a multiprocessor with 64 AMD Opteron 6276(2.3 GHz) cores, 126 GB of memory, running
 Linux 4.9.0-8amd64 and running the later Erlang version (Erlang/OTP 21.1). While running our tests, we are using the
 --$keep\_going$ flag to continue exploring our state space, even after an error is found. We do this so we can evaluate
 how fast the complete state space gets explored.
 
 \section{Source DPOR}
 
-\subsection{Preformance Results}
+\subsection{Performance Results}
 
 Here we are going to present graphs depicting the execution time and the speedup ($T_{serial} 
 \over T_{parallel}$) of the source DPOR algorithm

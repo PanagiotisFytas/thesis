@@ -283,24 +283,24 @@ reduced communication (higher budget) during periods with many busy schedulers a
   \end{figure*}
 
 Let us consider the example in Figure \ref{sourceexample}. In this case we have 3 processes that write and read a shared variable x.
-Figure \ref{Interleavings explored by the sequential source-DPOR} represents the traces explored during the sequential source-DPOR.
+Figure \ref{Interleavings explored by the sequential source-DPOR.} represents the traces explored during the sequential source-DPOR.
 We use a bold rectangle to represent a new event and a faint rectangle to denote a replayed event. The red edges represent
 the races that are detected and planned. The source set at a state is represented inside the brackets.
 
-\tracelonglong{source1.png}{Interleavings explored by the sequential source-DPOR}
+\tracelonglong{source1.png}{Interleavings explored by the sequential source-DPOR.}
 
-\tracelong{source2f.png}{Initial interleaving explored by the parallel algorithm}
+\tracelong{source2f.png}{Initial interleaving explored by the parallel algorithm.}
 
-Figure \ref{Initial interleaving explored by the parallel algorithm} depicts the initial step of the parallel source-DPOR. 
+Figure \ref{Initial interleaving explored by the parallel algorithm.} depicts the initial step of the parallel source-DPOR. 
 This initial execution sequence, along with detected races is partitioned into fragments which get assigned to different schedulers.
 This image also contains the initial execution tree which represents the state space that exists in our exploration frontier
 at this point.
 
-\tracelong{source3f.png}{Exploration of the assigned traces by each scheduler}
+\tracelong{source3f.png}{Exploration of the assigned traces by each scheduler.}
 
-In Figure \ref{Exploration of the assigned traces by each scheduler} we illustrate how each scheduler explores its assigned 
+In Figure \ref{Exploration of the assigned traces by each scheduler.} we illustrate how each scheduler explores its assigned 
 execution sequence. The first scheduler explores its first trace: $p.r.q.q$ (equivalent to the second trace 
-at Figure \ref{Interleavings explored by the sequential source-DPOR}). After the race detection takes place,
+at Figure \ref{Interleavings explored by the sequential source-DPOR.}). After the race detection takes place,
 there are no backtrack entries added below its assigned trace. The only execution sequence planned is the sequence $r$. However,
 this sequence is not explored since it does not belong to the state space of the scheduler. The Controller assigned to the
 second scheduler the execution sequence $q$. After exploring its first trace, two more races are detected. It is important to notice
@@ -322,7 +322,7 @@ from its execution sequence. This execution sequence will be left with no more b
 inserted into the frontier. This guarantees that we do not explore identical interleavings more than once.
 
 Lets assume that Scheduler 1 was the one that managed to report first to the Controller. Then the execution tree will be the one
-depicted in Figure \ref{Execution Tree if Scheduler 1 returned first}. Notice here that the states explored by the Scheduler 1
+depicted in Figure \ref{Execution Tree if Scheduler 1 returned first.}. Notice here that the states explored by the Scheduler 1
 were deleted from the execution tree. This keeps the size of the execution tree proportional to the size of 
 the current exploration frontier. At this point Scheduler 1 will add its execution sequence to the frontier. Then the 
 Controller will assign this sequence to Scheduler 1 (since Scheduler 2 has not yet returned), and Scheduler 1 will explore
@@ -330,4 +330,4 @@ the last 2 traces (trace 5 and 6 from the sequential example). After both Schedu
 will have finished since there will no more traces left to explore.
 
 
-\tracelong{source4f.png}{Execution Tree if Scheduler 1 returned first}
+\tracelong{source4f.png}{Execution Tree if Scheduler 1 returned first.}
