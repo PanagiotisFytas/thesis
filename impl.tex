@@ -111,11 +111,3 @@ Concuerror. Actual replay recreates the events and the side-effects of a trace a
 replaying interleavings received from other schedulers. On built-in events, we achieve this by setting an
 \textit{actual\_replay} flag to \textit{true} and by making changes on how the \textit{concuerror\_callback} module handles those replays.
 On other events, we set their \textit{event\_info} value to \textit{undefined} forcing those events to be recreated.
-
-\section{Logger Modifications}
-
-The Logger is necessary for reporting erroneous interleavings. If we were to keep the logger working as is,
-the reports from the different schedulers would interleave with each other leading unreadable output. There are two ways
-solve this.
-
-We can implement a \textit{logger\_wrapper} function that is going to be responsible for organizing 
