@@ -224,13 +224,11 @@ our first attempt in parallelizing the optimal-DPOR algorithm:
     index. The other $N$ processes read an array element and update the next one.
 \end{itemize}
 
-Our parallel optimal-DPOR fails to achieve any type of speedup, as depicted in Figure 
-\ref{Execution time for readers 10 by optimal-DPOR.}. Table \ref{Parallel optimal-DPOR performance.}
+Our parallel optimal-DPOR fails to achieve any type of speedup. Table \ref{Parallel optimal-DPOR performance.}
 holds information about how our implementation runs on various test cases. The exploration and planning
 time rows show what percentage of the time of the sequential algorithm is spend on exploring and planning interleavings respectively.
 Those measurements will help us explain the reason for this lack of speedup.
 
-\mediumGraph{scripts/readers10_timedd.png}{Execution time for readers 10 by optimal-DPOR.}
 
 
 \smalltabular{"tables/opttab.tex"}{Parallel optimal-DPOR performance.}
@@ -240,7 +238,7 @@ Those measurements will help us explain the reason for this lack of speedup.
 This lack of performance is justified by the following reasons.
 
 Firstly, lets look at the exploration and planning percentages of the sequential algorithm,
-presented at Table \ref{Parallel Optimal-DPOR performance.}. While the percentage of exploration time in the case of a small test
+presented at Table \ref{Parallel optimal-DPOR performance.}. While the percentage of exploration time in the case of a small test
 case like readers10 is around 40$\%$, we have observed that for larger test cases this figure varies between 10$\%$-30$\%$. 
 This means that even on an ideal setup, with zero overhead and infinite schedulers, our speedup could never exceed a factor
 of 1.429 (on a test case with 70$\%$ planning time, if we consider that the exploration phase happens instantly the 
