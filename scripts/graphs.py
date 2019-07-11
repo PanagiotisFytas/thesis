@@ -211,8 +211,10 @@ if __name__ == "__main__":
     # stackplots('readers1530000')
     # plot('readers','15','10000')
     # plot('readers','15','30000')
-    plot('rush', 'hour', '10000')
-    
+    # plot('rush', 'hour', '10000')
+    # plot('lastzero', '11', '10000')
+    # stackplots('lastzero1110000')
+    plot('indexer', '17', '10000')
     
     # plot('indexer15')
     # plot('readers15')

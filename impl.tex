@@ -14,9 +14,8 @@ then it will replay the prefix $E'$ to recreate the global state at $E'$, withou
 the processes in the backtrack (or in the wakeup tree) will be scheduled and finally the remaining events will be scheduled arbitrarily so as no
 more processes are enabled. The scheduler will then try and plan more interleavings. We are finished when there are no more interleavings left to explore
 (or until an error is found if the option \textit{keep\_going} is set to \textit{false}).
-\\
 
-\noindent Let us, also, describe the main datatypes used in the scheduler:
+Let us, also, describe the main datatypes used in the scheduler:
 \begin{itemize} 
 \item $event()$: corresponds to the event $e$ of a process $p$, according to our notation. It contains the
 Erlang $Pid$ (process identifier) of the actor process $p$, as well as information about the code (e.g. the BIF) of this specific event.

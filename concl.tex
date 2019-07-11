@@ -1,6 +1,7 @@
 \chapter{Concluding Remarks}
+\label{conclusion}
 
-In this diploma thesis we presented the parallelization of Concuerror. In order to parallelize Concuerror, we had to develop parallel versions for its two main algorithms: source-DPOR and optimal-DPOR. Parallelizing the optimal-DPOR algorithm appeared to be particularly daunting.
+In this diploma thesis, we presented the parallelization of Concuerror. In order to parallelize Concuerror, we had to develop parallel versions for its two main algorithms: source-DPOR and optimal-DPOR. Parallelizing the optimal-DPOR algorithm appeared to be particularly daunting.
 What is more, we also had to overcome various implementation challenges while making it possible for Concuerror to explore multiple interleavings in parallel.
 
 We evaluated our algorithms by using parallel Concuerror to test various programs. During this evaluation, we discovered that our algorithms provide significant speedup on most of our benchmarks. Furthermore, our implementation is able to scale up to at least 32 schedulers, depending on the benchmark. We also noticed that parallel source-DPOR algorithm is more scalable than the parallel optimal-DPOR algorithm, which was to be expected. 
@@ -13,7 +14,9 @@ However, there is still work to be done:
 
 \item Developing a parallel implementation of Concuerror that works within a single Erlang node, even if it restricts the use of Erlang Pids within the tested programs. This would serve as a lightweight alternative and more importantly, allow for using the sequential Concuerror to test and verify our implementation. 
 
-\item Modifying our parallel implementation work with optimal-DPOR with observers.
+\item Test and benchmark our implementation in a distributed setting.
+
+\item Modifying our parallel implementation to work with optimal-DPOR with observers.
 
 \item Examining and implementing bounding techniques on the parallel DPOR algorithms.
 

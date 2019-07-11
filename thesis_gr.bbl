@@ -133,14 +133,6 @@ Robert Virding, Claes Wikstr\"{o}m and Mike Williams,
 \newblock {\em Concurrent Programming in ERLANG (2Nd Ed.)},
 \newblock Prentice Hall International (UK) Ltd., Hertfordshire, UK, UK, 1996.
 
-\nbibitem[Wiki18]{wiki:timeslice}{}{}{}
-{Wikipedia contributors},
-\newblock ``Preemption (computing) --- {Wikipedia}{,} The Free Encyclopedia'',
-\newblock
-  \url{https://en.wikipedia.org/w/index.php?title=Preemption_(computing)&oldid=838871409},
-  2018.
-\newblock [Online; accessed 18-October-2018].
-
 \nbibitem[Yang07]{Yang:2007:DDP:1770532.1770541}{}{}{}
 Yu~Yang, Xiaofang Chen, Ganesh Gopalakrishnan and Robert~M. Kirby,
 \newblock ``Distributed Dynamic Partial Order Reduction Based Verification of
