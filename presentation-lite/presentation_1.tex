@@ -1140,9 +1140,8 @@ Therefore:
 \begin{frame} {Modifying Concuerror}
 
 \begin{itemize}[<+->]
-\item Sequential Concuerror has one process for every process of tested program.
 \item Different schedulers must be able to explore different interleavings concurrently.
-\item Each scheduler must have its own set of processes. 
+\item Each scheduler must have its own set of processes that correspond to the same process of the tested program. 
 \item Create mappings between the different copies of a process.
 \end{itemize}
 
@@ -1166,7 +1165,7 @@ Therefore:
 
 \begin{itemize}[<+->]
 \item We want different process with the same Pid.
-\item Inside an Erlang node, process from that node are reference by their local Pid.
+\item Inside an Erlang node, processes from that node are referenced by their local Pid.
 \item Processes from different nodes can have the same local Pid.
 \item Pids are generated sequentially within a node.
 \end{itemize}
@@ -1187,7 +1186,7 @@ Therefore:
 
 \begin{frame} {Modifying Concuerror}
 
-Concuerror now runs distributed.
+Concuerror becomes distributed.
 
 \end{frame}
 
@@ -1313,9 +1312,9 @@ optimal-DPOR does not need as frequent load balance.
 
 \end{frame}
 
-\begin{frame}{Evaluation on rush hour}
+\begin{frame}{Evaluation on rush hour and indexer 17}
 
-Both of our algorithms provide high speed and decent scalability on this test case.
+Both of our algorithms provide high speed and decent scalability on these test cases.
 \\
 However, after 24 schedulers we notice that the scalability of optimal-DPOR starts to break. This is because:
 
@@ -1350,7 +1349,7 @@ During this thesis we:
 \item Parallelized source-DPOR and optimal-DPOR.
 \item Implemented our algorithms in Concuerror.
 \item Achieved significant speedups.
-\item Achieved scalability up to 32 schedulers on specific benchmarks.
+\item Achieved scalability up to 32 schedulers.
 \end{itemize}
 
 \end{frame}

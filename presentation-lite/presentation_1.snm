@@ -18,11 +18,11 @@
 \beamer@slide {Scheduler 2 exploration.}{93}
 \beamer@slide {Parallel optimal-DPOR performance.}{95}
 \beamer@slide {Execution time for readers 10 by optimal-DPOR.}{98}
-\beamer@slide {Sequential performance of source-DPOR and optimal-DPOR on four benchmarks.}{135}
-\beamer@slide {Performance of readers 15 with Budget of 10000.}{136}
-\beamer@slide {Number of times schedulers stopped their execution with a Budget of 10000.}{137}
-\beamer@slide {Performance of readers 15 with budget of 30000.}{138}
-\beamer@slide {Number of times schedulers stopped their execution with a Budget of 30000.}{139}
-\beamer@slide {Performance of lastzero 11 with Budget of 10000 for source and 30000 for optimal.}{142}
-\beamer@slide {Performance of rush hour with Budget of 10000 for source and 30000 for optimal.}{143}
-\beamer@slide {Performance of indexer 17 with Budget of 10000 for source and 30000 for optimal.}{144}
+\beamer@slide {Sequential performance of source-DPOR and optimal-DPOR on four benchmarks.}{134}
+\beamer@slide {Performance of readers 15 with Budget of 10000.}{135}
+\beamer@slide {Number of times schedulers stopped their execution with a Budget of 10000.}{136}
+\beamer@slide {Performance of readers 15 with budget of 30000.}{137}
+\beamer@slide {Number of times schedulers stopped their execution with a Budget of 30000.}{138}
+\beamer@slide {Performance of lastzero 11 with Budget of 10000 for source and 30000 for optimal.}{141}
+\beamer@slide {Performance of rush hour with Budget of 10000 for source and 30000 for optimal.}{142}
+\beamer@slide {Performance of indexer 17 with Budget of 10000 for source and 30000 for optimal.}{143}
