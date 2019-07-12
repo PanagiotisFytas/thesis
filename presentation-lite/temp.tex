@@ -1,0 +1,522 @@
+\begin{frame} {Stateless Model Checking}
+
+
+\tracelong{../img/initstateless.png}{State space of a program.}
+
+\end{frame}
+
+\begin{frame} {Partial Order Reduction}
+
+Partial Order Reduction tries to avoid exploring equivalent interleavings through race detection.
+
+\trace{../img/initpor.png}{Interleavings explored by POR}
+
+\end{frame}
+
+\begin{frame} {Partial Order Reduction}
+\begin{itemize}[<+->]
+    \item Static Partial Order Reduction: Dependencies are tracked before execution, by statically analyzing the code.
+    \item Dynamic Partial Order Reduction (DPOR): Actual dependencies are observed during runtime.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame} {Terminology}
+
+\begin{itemize}[<+->]
+    \item The complete execution of a process $p$ splits into different execution steps, which are
+    to be executed atomically. Those steps are referred to as $events$. Each event must be deterministic.
+    \item An execution sequence $E$ of a system is a finite sequence of execution steps
+    of its processes that is performed from a unique initial state.
+    \item An execution sequence $E$ is uniquely characterized by the sequence of processes
+    that perform steps in $E$. For instance, $p.p.q$ denotes the execution
+    sequence where first $p$ performs two steps, followed by a step of $q$.
+    \item The sequence of processes that perform steps in $E$ also uniquely
+    determines the global state of the system after $E$.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame} {Erlang}
+
+Erlang is a programming language that has build-in support for:
+
+\begin{itemize}[<+->]
+  \item Concurrency
+  \item Distribution
+\end{itemize}
+
+\end{frame}
+\begin{frame} {Concurrent Erlang}
+
+In the core of concurrent Erlang are its lightweight processes which:
+
+\begin{itemize}[<+->]
+  \item are implemented by the Erlang VM's (BEAM) runtime system, not by operating system threads.
+  \item are uniquely identified by their Pid (Process Identifier).
+  \item communicate with each other mainly though message passing (actor model).
+
+\end{itemize}
+\pause
+
+Erlang also has support for shared memory through the build-in ETS (Erlang Term Storage) module.
+
+\end{frame}
+
+\begin{frame} {Distributed Erlang}
+
+\begin{itemize}[<+->]
+\item An Erlang node is an Erlang runtime system containing a complete virtual machine which
+contains its own address space and set of processes. 
+\item Erlang nodes can communicate over the network, remotely or through the localhost. 
+\item Pids continue to be unique over different
+nodes (globally).
+\item Inside two different nodes, two different processes can have the
+same local Pid.
+\item All primitives operate over the
+network similarly as they would on the same node.
+
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame} {Concuerror}
+
+Concuerror is a tool that uses various stateless model checking techniques
+in order to systematically 
+test an Erlang program, with the aim of detecting and reporting concurrency-related runtime errors.
+Its main components are:
+
+\begin{itemize}[<+->]
+\item Instrumenter:
+  \begin{itemize}
+  \item adds preemption points to various points in the code of a tested program.
+  \item makes it possible to produce specific interleaving.
+  \end{itemize}
+
+\item Scheduler:
+  \begin{itemize}
+  \item uses mainly source-DPOR or optimal-DPOR, to determine which interleavings need to be checked.
+  \item controls the execution of the processes to produce those interleavings.
+  \end{itemize}
+\end{itemize}
+
+ 
+\end{frame}
+
+\begin{frame}{Aim of Thesis}
+
+\begin{itemize}[<+->]
+    \item Develop parallel version for source-DPOR algorithm.
+    \item Develop parallel version for optimal-DPOR algorithm.
+    \item Implement those parallel algorithms in Concuerror.
+    \item Evaluate the performance of our implementation.
+\end{itemize}
+
+\end{frame}
+
+\section{Sequential DPOR Algorithms}
+
+
+\begin{frame} {General DPOR Concepts}
+
+DPOR: performs a DFS using a backtrack set. Two main techniques:
+\begin{itemize}[<+->]
+    \item Persistent sets: only a provably sufficient subset of the enabled processes gets explored.
+    \item Sleep sets: prevents redundant exploration.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Optimality in DPOR}
+
+\begin{itemize}[<+->]
+\item A DPOR algorithm is optimal if, for every maximal execution sequence $E$, it explores exactly one interleaving from 
+$[E]_{\simeq}$.
+\item Persistent-set based DPOR is not optimal.
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Source Sets}
+
+%%%\begin{definition}[Initials after an execution sequence $E.w$, $I_{[E]}(w)$]
+%%%    $p \in I_{[E]}(w)$ if and only if there is a sequence $w'$ such that $E.w \simeq E.p.w'$.
+%%%\end{definition}
+
+
+\begin{definition}[Weak Initials after an execution sequence $E.w$, $WI_{[E]}(w)$]
+
+$p \in WI_{[E]}(w)$ if and only if there are sequences $w'$ and $v$ such
+that $E.w.v \simeq E.p.w'$.
+
+\end{definition}
+
+\begin{definition}[Source Sets]
+Let $E$ be an execution sequence,
+and let $W$ be a set of sequences, such that $E.w$ is an execution
+sequence for each $w \in W$. A set $T$ of processes is a source set for
+$W$ after $E$ if for each $w \in W$ we have $WI_{[E]}(w) \cap T  \neq \emptyset$.
+\end{definition}
+\\
+
+\item A source set of a sequence $w$ at an execution sequence $E$, contains the process that can perform the  ``first steps" 
+after $E$ that can reproduce sequences equivalent to $w$.
+
+\end{frame}
+
+
+\begin{frame}{Source-DPOR}
+
+\begin{figure}
+    
+\scalebox{1}{
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Source-DPOR}
+    \label{Source}
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$\;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \Let{$u = notdep(e,E).p$}
+                    \If{$I_{[E']}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E')$\;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$\;
+                add $p$ to $Sleep$\;
+
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}{Source-DPOR}
+
+Source-DPOR in action:
+
+\tracelong{../img/source1.png}{Interleavings explored by the source-DPOR.}
+
+\end{frame}
+
+
+\begin{frame}{Motivation for Wakeup Trees}
+
+\begin{columns}
+\column{0.75\textwidth}
+\begin{figure}
+    
+\scalebox{0.7}{
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \label{Source}
+    \Fn{Explore($E$,$Sleep$)}{
+        \If{$\exists p \in (enabled(s_{[E]}) \backslash Sleep)$}{
+            $backtrack(E) :={p}$\;
+            \While{$\exists p \in (backtrack(E) \backslash Sleep)$}{
+                \ForEach{$e \in dom(E)$ such that $e \lesssim_{E.p} next_{[E]}(p)$}{
+                    \Let{$E' = pre(E,e)$}
+                    \HiLi\Let{$u = notdep(e,E).p$}
+                    \If{$I_{[E']}(u) \cap backtrack(E') = \emptyset$}{
+                        add some $q' \in I_{[E']}(u) \text{ to } backtrack(E')$\;
+                    }
+                }
+                \Let{$Sleep' := \{q \in Sleep \mid E \models p \diamondsuit q \} $}
+                $Explore(E.p, Sleep')$\;
+                add $p$ to $Sleep$\;
+
+            }
+        }
+    }
+\end{algorithm}
+}
+\end{figure}
+\column{0.25\textwidth}
+
+\begin{itemize}
+
+\item $E'.u$ needs to be explored.
+\item But only a single process gets added to the backtrack.
+\item This may lead to sleep-set blocking.
+\end{itemize}
+
+\end{columns}
+
+
+\end{frame}
+
+
+\begin{frame} {Wakeup Trees}
+
+
+\begin{definition}{(Ordered Tree)}\label{def:Ordered}\\
+An $ordered$ $tree$ is a pair $\langle B , \prec \rangle$, where B (the set of nodes) is a finite prefix-closed
+    set of sequences of processes with the empty sequence $\langle\rangle$ being the root.
+    The children of a node $w$, of form $w.p$ for some set of processes $p$, are ordered by $\prec$. 
+    In $\langle B , \prec \rangle$, such an ordering between children has been extended to the total 
+    order $\prec$ on $B$ by letting $\prec$ be the induced post-order relation between the nodes in $B$.
+    This means that if the children $w.p_1$ and $w.p_2$ are ordered as $w.p_1 \prec w.p_2$,
+    then $w.p_1 \prec w.p_2 \prec w $ in the induced post-order.
+\end{definition}
+
+\begin{definition}{(Wakeup Tree)}\\
+    Let $E$ be an execution sequence and $P$ a set of processes. a $wakeup$ $tree$ after $\langle E , P \rangle$
+    is an ordered tree $\langle B , \prec \rangle$, for which the following properties hold:
+    \begin{itemize}
+        \item $WI_{[E]}(w) \cap P = \emptyset$ for every leaf $w$ of $B$.
+        \item For every node in $B$ of the form $u.p$ and $u.w$ such that $u.p \prec u.w$ and $u.w$ is a leaf
+        the $p \not \in WI_{[E.u]}(w)$ property must hold true.
+    \end{itemize}
+\end{definition}
+
+\end{frame}
+
+
+\begin{frame} {Wakeup Trees}
+
+Intuitively, wakeup trees hold sequences of processes that
+need to be explored. They can visualized in the following way:
+
+\pause
+
+\tracelonglong{WuTExample.png}{Visualizing wakeup trees.}
+
+\end{frame}
+
+\begin{frame} {Wakeup Trees}
+
+Inserting new sequences ($insert_{[E]}(w,\langle B , \prec \rangle)$) in the wakeup tree has the following properties:
+
+\begin{itemize}[<+->]
+
+    \item $insert_{[E]}(w,\langle B , \prec \rangle)$ is also a wakeup tree after $\langle E , P \rangle$.
+    \item Any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$.
+    \item $insert_{[E]}(w,\langle B , \prec \rangle)$ , while it may not contain $w$ as a leaf, it contains a  leaf $u$ with $u \sim_{[E]} w$. 
+
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame} [shrink=28]{Optimal-DPOR}
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Optimal-DPOR}
+    \label{optimal}
+    \Fn{Explore($E$,$Sleep$,$WuT$)}{
+        \uIf{$enabled(s_{[E]}) = \emptyset$}{
+            \ForEach{$e,e' \in dom(E)$ such that ($e \lesssim_{E} e'$)}{
+                \Let{$E' = pre(E,e)$}
+                \Let{$v = notdep(e,E).proc(e')$}
+                \If{$sleep(E') \cap WI_{[E']}(v)= \emptyset$}{
+                    $insert_{[E']}(v,wut(E'))$\;
+                }
+            }
+        }
+    \Else {
+        \uIf{$WuT \not = \langle \{ \langle \rangle \}, \emptyset \rangle$}{
+            $wut(E) := WuT$\;
+        }
+        \Else {
+            choose $p \in enabled(s_{[E]})$\;
+            $wut(E) := \langle \{ p \}, \emptyset \rangle $\;
+        }
+        $sleep(E) := Sleep$\;
+        \While{$\exists p \in wut(E)$}{
+            \Let{ $p = min_{\prec}\{ p \in wut(E)\}$}
+            \Let{$Sleep' := \{q \in sleep(E) \mid E \models p \diamondsuit q \} $}
+            \Let{$WuT' = subtree(wut(E), p)$}
+            $Explore(E.p, Sleep', WuT')$\;
+            add $p$ to $sleep(E)$\;
+            remove all sequences of form $p.w$ from $wut(E)$\;
+        }
+    }
+}
+\end{algorithm}
+\end{frame}
+
+
+\begin{frame} {Optimal-DPOR example}
+\tracelong{../img/opt_seq/11.png}{Optimal-DPOR exlporation.}
+\end{frame}
+
+\begin{frame} {Optimal-DPOR example}
+\tracelong{../img/opt_seq/55.png}{Optimal-DPOR exlporation.}
+\end{frame}
+
+\section{Parallelizing source-DPOR and optimal-DPOR}
+
+\begin{frame} {Parallel source-DPOR}
+
+Lets assume that we have an execution sequence $E$ and that $p$ and $q$ are processes in $backtrack(E)$. We could:
+
+\begin{itemize}[<+->]
+  \item Assign the exploration of $E.p$ and $E.q$ to different workers-schedulers.
+  \item The exploration frontier gets updated in a non-local manner.
+  \item Who would be responsible for exploring $E.r$?
+  \item How do we now that the subtrees are balanced?
+\end{itemize}
+ 
+\end{frame}
+
+\begin{frame} {Basic Idea}
+
+We are going to use a centralized Controller who will be responsible for:
+
+\begin{itemize}[<+->]
+  \item assigning work to different schedulers, by partitioning Execution sequences.
+  \item resolving conflicts.
+\end{itemize}
+\end{frame}
+
+\begin{frame} {Basic Idea}
+The Controller will keep track of:
+
+\begin{itemize}[<+->]
+  \item the Frontier of our search: the set of the execution sequences assigned to different schedulers.
+  \item the Execution Tree: the subtree of the state space that is currently being explored i.e., the Frontier combined in a tree form.
+  A path from the root of tree to a leaf uniquely determines an execution sequence.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Basic Idea}
+
+Also, lets introduce the concept of Execution Tree node ownership:
+
+\begin{itemize}[<+->]
+  \item A scheduler exclusively \textbf{owns} a node of the state space if: 
+    \begin{itemize}
+    \item it is an assigned backtrack entry
+    \item it is a descendant of a node that the scheduler owns.
+    \end{itemize}
+  \item All other nodes, are considered to have a \textbf{disputed} ownership.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Controller Logic}
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \label{controllerloop}
+    \Fn{controller\_loop($N$, $Budget$, $Schedulers$)}{
+        $E_0 \leftarrow$ an arbitrary initial execution sequence\;
+        $Frontier \leftarrow[E_0]$\;
+        $T \leftarrow$ an execution tree rooted at $E_0$\;
+        \While{$Frontier \neq \emptyset$} {
+            $Frontier \leftarrow partition(Frontier, N)$\;
+            \While{exists an idle scheduler $S$ and an unassigned execution sequence $E$ in $Frontier$}{
+                $E_c \leftarrow$ a copy of $E$\;
+                mark $E$ as assigned in $Frontier$\;
+                $spawn(S, explore\_loop(E_c, Budget))$\;
+            }
+            $Frontier,T \leftarrow wait\_scheduler\_response(Frontier, T)$\;
+        }
+           
+    }
+
+\end{algorithm}
+
+\end{frame}
+
+\begin{frame} {Frontier Partitioning}
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \label{partition}
+    \Fn{partition($Frontier$, $N$)}{
+        \For{all E $\in$ Frontier}{
+            \While{$total\_backtrack\_entries(E) > 1$ \textbf{and} $size(Frontier) < N$}{
+                $E' \leftarrow $ \textnormal{the smallest prefix of $E$
+                that has a backtrack entry} \;
+                $p \leftarrow \textnormal{ a process} \in backtrack(E') $\;
+                $E_c' \leftarrow \textnormal{ a copy of } E'$\;
+                \textnormal{remove $p$ from $ backtrack(E')$}\;
+                \textnormal{add $p$ to $ sleep(E')$}\;
+                \textnormal{add $ backtrack(E') $ to $ sleep(E_c')$}\;
+                \textnormal{add $E_c'$ to $ Frontier$}\;
+            }
+        }
+        \Return $Frontier$\;
+    }
+\end{algorithm}
+
+\end{frame}
+
+
+
+\begin{frame} {Scheduler Exploration Loop}
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \label{explore_loop}
+    \Fn{explore\_loop($E_0$, $Budget$)}{
+        $StartTime \leftarrow get\_time()$\;
+        $ E \leftarrow E_0$\;
+        \Repeat{$CurrentTime - StartTime > Budget \textbf{ or } size(E) \leq size(E_0)$}{
+            $ E' \leftarrow explore(E)$\;
+            $ E' \leftarrow plan\_more\_interleavings(E') $\;
+            $ E \leftarrow get\_next\_execution\_sequence(E')$\;
+            $CurrentTime \leftarrow get\_time()$\;
+        }
+        \textnormal{\textbf{send}  $E$ to Controller} \;
+    }
+\end{algorithm}
+
+\end{frame}
+
+\begin{frame} {Parallel source-DPOR}
+
+\SetKwProg{Fn}{Function}{}{}
+\SetKwHangingKw{Let}{let}
+\begin{algorithm}[H]
+    \caption{Handling Scheduler Response}
+    \label{response}
+    \Fn{wait\_scheduler\_response(Frontier, T)}{
+        \textnormal{\textbf{receive} $E$ from a scheduler}\;
+        remove $E$ from $Frontier$\;
+        $E',T \leftarrow update\_execution\_tree(E, T)$\;
+        \If{$E'$ has at least one backtrack entry}{
+                \textnormal{add $E'$ to $Frontier$}\;
+        }
+        \Return $Frontier,T$;
+    }
+\end{algorithm}
+
+
+\end{frame}
+\begin{frame}{Resolving conflicts}
+
+$update\_execution\_tree(E, T)$:
+
+\begin{itemize}
+\item iterates
+over the execution sequence and the execution tree simultaneously .
+\item backtrack entries of E that are not found in the execution tree, are added to it.
+\item ownership is claimed over them.
+
+
+\end{itemize}
+
+\end{frame}

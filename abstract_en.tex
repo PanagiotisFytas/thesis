@@ -1,13 +1,3 @@
-Testing and verifying concurrent programs is quite a daunting task. Due to the non-determinism of the scheduler,
-errors can occur only on specific process interleaving sequences and therefore, all possible different
-schedulings should be examined. Currently, one of the most practical methods of dealing with the combinatorial state space
-explosion of this problem is a technique called Dynamic Partial Order Reduction (DPOR). As parallel processing
-has become the dominant paradigm in modern computer systems, developing parallel versions of DPOR algorithms is essential 
-for scaling those algorithms to modern platforms.
+Testing and verifying concurrent programs is quite a daunting task. Due to the non-determinism of the scheduler, errors can occur only on specific process interleaving sequences and therefore, all possible different schedulings should be examined. Currently, one of the most practical methods of dealing with the combinatorial state space explosion of this problem is a technique called Dynamic Partial Order Reduction (DPOR). As parallel processing has become the dominant paradigm in modern computer systems, developing parallel versions of DPOR algorithms is essential for scaling those algorithms to modern platforms.
 
-This diploma thesis is concerned with the parallelization of Concuerror, a stateless model checking tool that uses various
-DPOR techniques for testing and verifying concurrent Erlang programs. Specifically, we have focused on developing parallel
-versions for the main DPOR algorithms implemented in Concuerror: source-DPOR and optimal-DPOR, and on modifying Concuerror, 
-in order to be able to explore different interleavings in parallel.
-Also, we have evaluated the speedup and scalability of our implementation on certain benchmarks that
-are widely used for evaluating DPOR algorithms. Specifically, our implementation manages to achieve significant speedups, and, depending on the test case, scale up to 32 parallel workers.
+This diploma thesis is concerned with the parallelization of Concuerror, a stateless model checking tool that uses various DPOR techniques for testing and verifying concurrent Erlang programs. Specifically, we have focused on developing parallel versions for the main DPOR algorithms implemented in Concuerror: source-DPOR and optimal-DPOR, and on modifying Concuerror,  in order to be able to explore different interleavings in parallel. Also, we have evaluated the speedup and scalability of our implementation on certain benchmarks that are widely used for evaluating DPOR algorithms. Specifically, our implementation manages to achieve significant speedups, and, depending on the test case, scale up to 32 parallel workers.

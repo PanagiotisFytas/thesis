@@ -1,20 +1,28 @@
-\beamer@slide {Stateless Model Checking Example}{25}
-\beamer@slide {Partial Order Reduction Example}{30}
-\beamer@slide {Source}{48}
-\beamer@slide {Interleavings explored by the source-DPOR.}{50}
-\beamer@slide {Source}{51}
-\beamer@slide {def:Ordered}{52}
-\beamer@slide {Visualizing wakeup trees.}{53}
-\beamer@slide {optimal}{55}
-\beamer@slide {controllerloop}{61}
-\beamer@slide {partition}{62}
-\beamer@slide {explore_loop}{63}
-\beamer@slide {response}{64}
-\beamer@slide {Parallel optimal-DPOR performance.}{69}
-\beamer@slide {Execution time for readers 10 by optimal-DPOR.}{71}
-\beamer@slide {Sequential source-DPOR vs optimal-DPOR for our benchmarks.}{78}
-\beamer@slide {Performance of readers 15 with Budget of 10000.}{79}
-\beamer@slide {Number of times schedulers stopped their execution with a Budget of 10000.}{80}
-\beamer@slide {Performance of readers 15 with budget of 30000.}{81}
-\beamer@slide {Number of times schedulers stopped their execution with a Budget of 30000.}{82}
-\beamer@slide {Performance of rush hour with Budget of 10000 for source and 30000 for optimal.}{84}
+\beamer@slide {State space of a program.}{20}
+\beamer@slide {Interleavings explored by POR}{21}
+\beamer@slide {Source}{56}
+\beamer@slide {Interleavings explored by the source-DPOR.}{57}
+\beamer@slide {Source}{58}
+\beamer@slide {def:Ordered}{59}
+\beamer@slide {Visualizing wakeup trees.}{60}
+\beamer@slide {optimal}{65}
+\beamer@slide {Optimal-DPOR exlporation.}{66}
+\beamer@slide {Optimal-DPOR exlporation.}{67}
+\beamer@slide {controllerloop}{81}
+\beamer@slide {partition}{82}
+\beamer@slide {explore_loop}{83}
+\beamer@slide {response}{84}
+\beamer@slide {Initial execution sequences.}{90}
+\beamer@slide {Scheduler 1 exploration.}{91}
+\beamer@slide {Execution Tree after Scheduler 1 reports to Controller.}{92}
+\beamer@slide {Scheduler 2 exploration.}{93}
+\beamer@slide {Parallel optimal-DPOR performance.}{95}
+\beamer@slide {Execution time for readers 10 by optimal-DPOR.}{98}
+\beamer@slide {Sequential performance of source-DPOR and optimal-DPOR on four benchmarks.}{135}
+\beamer@slide {Performance of readers 15 with Budget of 10000.}{136}
+\beamer@slide {Number of times schedulers stopped their execution with a Budget of 10000.}{137}
+\beamer@slide {Performance of readers 15 with budget of 30000.}{138}
+\beamer@slide {Number of times schedulers stopped their execution with a Budget of 30000.}{139}
+\beamer@slide {Performance of lastzero 11 with Budget of 10000 for source and 30000 for optimal.}{142}
+\beamer@slide {Performance of rush hour with Budget of 10000 for source and 30000 for optimal.}{143}
+\beamer@slide {Performance of indexer 17 with Budget of 10000 for source and 30000 for optimal.}{144}

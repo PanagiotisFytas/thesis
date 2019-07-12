@@ -103,6 +103,61 @@
 \usepackage{graphicx}
 
 
+\usepackage{listings}
+\usepackage{lstlinebgrd}
+\lstset{
+    numbers=left,
+    numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    frame=single,
+    frameround=tttt,
+    showstringspaces=false,
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^
+}
+\lstdefinestyle{custom}{
+    numbers=left,
+    numberstyle=\tiny\color{black},
+    basicstyle=\ttfamily\footnotesize,
+    basewidth=0.59em,
+    keywordstyle=[3]{},
+    commentstyle=\itshape\footnotesize,
+    tabsize=8,
+    frame=single,
+    frameround=tttt,
+    showstringspaces=false,
+    rulecolor=\color{black},
+    breaklines=false,
+    captionpos=b,
+    aboveskip=\bigskipamount,
+    belowskip=\bigskipamount,
+    escapechar=^,
+    moredelim=**[is][\color{blue}]{@}{@}
+}
+
+\lstnewenvironment{code}[2]{
+  \nopagebreak
+  \lstset{language=Erlang, label={#1}, caption={#2}, style=custom}
+}{}
+
+\lstnewenvironment{code_appendix}{
+  \nopagebreak
+  \lstset{language=Erlang, style=custom, numbers=none,rulecolor=\color{black}}
+}{}
+
+\lstnewenvironment{console}[2]{
+  \nopagebreak
+  \lstset{label={#1}, caption={#2}, numbers=none, style=custom}
+}{}
+\usepackage{adjustbox}
+\newsavebox\listingboxname
 
 \usepackage{fontspec}
 \usepackage{xunicode}
@@ -280,9 +335,9 @@
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[Short title]{Parallelizing Concuerror: A Dynamic Partial Order Reduction Testing Tool for Erlang Programs} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[Short title]{Parallelizing Dynamic Partial Order Reduction Algorithms in Concuerror} % The short title appears at the bottom of every slide, the full title is only on the title page
 
-\author{Φυτάς Παναγιώτης} % Your name
+\author{Παναγιώτης Φυτάς} % Your name
 \institute[NTUA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
 ΣΗΜΜΥ - ΕΜΠ \\ % Your institution for the title page
@@ -313,38 +368,14 @@
 
 %\subsection{} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
 
-\begin{frame}{Aim of Thesis}
 
-\begin{itemize}[<+->]
-    \item Develop parallel version for source-DPOR algorithm.
-    \item Develop parallel version for optimal-DPOR algorithm.
-    \item Implement those parallel algorithms at Concuerror.
-    \item Evaluate the performance of our implementation.
-\end{itemize}
-
-\end{frame}
 
 \AtBeginSection{\frame{\sectionpage}}
 \section{Background}
-\begin{frame}{Concurrent Computing}
-\emph{Concurrent Computing} is a form of computing in which several computations are executed during
-overlapping time periods concurrently, instead of sequentially (one completing before the next starts).
-\\
-
-Essential because:
-\pause
-\begin{itemize}[<+->]
-    \item Speed up execution time of programs
-    \item Scale to multithreaded architectures 
-    \item Availability of services
-    \item High responsiveness for I/O intensive programs
-\end{itemize}
-
-\end{frame}
 
 \begin{frame}{Concurrent Computing}
 
-However, concurrency is difficult to get right:
+Concurrency is difficult to get right:
 \pause
 \begin{itemize}[<+->]
     \item Deadlocks
@@ -362,26 +393,55 @@ Detecting and reproducing bugs becomes extremely hard.
 
 \end{frame}
 
-\begin{frame}{Modeling our Problem}
+\begin{frame}[fragile]{Modeling our Problem}
 
 \begin{itemize}[<+->]
     \item An interleaving (or a trace) represents a scheduling of the concurrent program.
     \item The state space is the set of all possible interleavings.
     \item In order to verify a program, the complete state space must be explored.
 \end{itemize}
-    
 
 \end{frame}
 
-\begin{frame} {Stateless Model Checking}
+\begin{frame}{Stateless Model Checking}
 
 \begin{itemize}[<+->]
     \item Stateless Model Checking systematically explores all possible interleavings.
     \item Combinatorial state space explosion.
-    \item Different interleavings can be equivalent.
+    \item Different interleavings can be equivalent (Mazurkiewicz trace).
 \end{itemize}
-\pause
-\tracelong{../img/initstateless.png}{Stateless Model Checking Example}
+
+\end{frame}
+
+\begin{frame}[fragile]{A Simple Program}
+
+
+\begin{columns}[onlytextwidth]
+    \begin{column}{0.4\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            p:
+            read(x)
+            write(x)
+        \end{lstlisting}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            q:
+            read(y)
+            read(x)
+        \end{lstlisting}
+    \end{column}
+\end{columns}
+
+
+\end{frame}
+
+
+
+\begin{frame} {Stateless Model Checking}
+
+
+\tracelong{../img/initstateless.png}{State space of a program.}
 
 \end{frame}
 
@@ -389,7 +449,7 @@ Detecting and reproducing bugs becomes extremely hard.
 
 Partial Order Reduction tries to avoid exploring equivalent interleavings through race detection.
 
-\trace{../img/initpor.png}{Partial Order Reduction Example}
+\trace{../img/initpor.png}{Interleavings explored by POR}
 
 \end{frame}
 
@@ -402,7 +462,7 @@ Partial Order Reduction tries to avoid exploring equivalent interleavings throug
 \end{frame}
 
 
-\begin{frame} {Important Concepts}
+\begin{frame} {Terminology}
 
 \begin{itemize}[<+->]
     \item The complete execution of a process $p$ splits into different execution steps, which are
@@ -414,15 +474,7 @@ Partial Order Reduction tries to avoid exploring equivalent interleavings throug
     sequence where first $p$ performs two steps, followed by a step of $q$.
     \item The sequence of processes that perform steps in $E$ also uniquely
     determines the global state of the system after $E$.
-    \item We use $E \simeq E'$ to denote that $E$ and $E'$ are
-    equivalent, and $[E]_{\simeq}$ to denote the equivalence class of $E$.
 \end{itemize}
-
-\end{frame}
-
-\begin{frame} {}
-
-Explain races and happens-before???
 
 \end{frame}
 
@@ -431,7 +483,7 @@ Explain races and happens-before???
 
 Erlang is a programming language that has build-in support for:
 
-\begin{itemize}
+\begin{itemize}[<+->]
   \item Concurrency
   \item Distribution
 \end{itemize}
@@ -441,12 +493,13 @@ Erlang is a programming language that has build-in support for:
 
 In the core of concurrent Erlang are its lightweight processes which:
 
-\begin{itemize}
+\begin{itemize}[<+->]
   \item are implemented by the Erlang VM's (BEAM) runtime system, not by operating system threads.
   \item are uniquely identified by their Pid (Process Identifier).
   \item communicate with each other mainly though message passing (actor model).
 
 \end{itemize}
+\pause
 
 Erlang also has support for shared memory through the build-in ETS (Erlang Term Storage) module.
 
@@ -454,19 +507,15 @@ Erlang also has support for shared memory through the build-in ETS (Erlang Term 
 
 \begin{frame} {Distributed Erlang}
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item An Erlang node is an Erlang runtime system containing a complete virtual machine which
 contains its own address space and set of processes. 
-\item Erlang nodes can connect with each other using cookies
-and they can communicate over the network. 
-\item Multiple nodes can be easily started, either on the local host or at remote hosts (using ssh).
+\item Erlang nodes can communicate over the network, remotely or through the localhost. 
 \item Pids continue to be unique over different
 nodes (globally).
 \item Inside two different nodes, two different processes can have the
 same local Pid.
-\item Distributed Erlang Programs can run on different nodes. 
-\item An Erlang process can be
-spawned on any node, local or remote. All primitives operate over the
+\item All primitives operate over the
 network similarly as they would on the same node.
 
 \end{itemize}
@@ -476,19 +525,19 @@ network similarly as they would on the same node.
 
 \begin{frame} {Concuerror}
 
-Concuerror is a tool that various stateless model checking techniques
+Concuerror is a tool that uses various stateless model checking techniques
 in order to systematically 
 test an Erlang program, with the aim of detecting and reporting concurrency-related runtime errors.
 Its main components are:
 
-\begin{itemize}
-\item the Instrumenter:
+\begin{itemize}[<+->]
+\item Instrumenter:
   \begin{itemize}
   \item adds preemption points to various points in the code of a tested program.
   \item makes it possible to produce specific interleaving.
   \end{itemize}
 
-\item the Scheduler:
+\item Scheduler:
   \begin{itemize}
   \item uses mainly source-DPOR or optimal-DPOR, to determine which interleavings need to be checked.
   \item controls the execution of the processes to produce those interleavings.
@@ -498,36 +547,45 @@ Its main components are:
  
 \end{frame}
 
+\begin{frame}{Aim of Thesis}
+
+\begin{itemize}[<+->]
+    \item Develop parallel version for source-DPOR algorithm.
+    \item Develop parallel version for optimal-DPOR algorithm.
+    \item Implement those parallel algorithms in Concuerror.
+    \item Evaluate the performance of our implementation.
+\end{itemize}
+
+\end{frame}
 
 \section{Sequential DPOR Algorithms}
 
 
 \begin{frame} {General DPOR Concepts}
 
-DPOR: performs a DFS using a backtrack set. Exploration is based on two techniques that reduce the amount of the explored interleavings:
+DPOR: performs a DFS using a backtrack set. Two main techniques:
 \begin{itemize}[<+->]
     \item Persistent sets: only a provably sufficient subset of the enabled processes gets explored.
-    \item Sleep sets: contain processes, whose exploration would be redundant, 
-    preventing equivalent interleavings from being fully explored.
+    \item Sleep sets: prevents redundant exploration.
 \end{itemize}
 
 \end{frame}
 
 \begin{frame} {Optimality in DPOR}
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item A DPOR algorithm is optimal if, for every maximal execution sequence $E$, it explores exactly one interleaving from 
 $[E]_{\simeq}$.
-\item Sleep-set blocking: most DPOR algorithms are not optimal.
+\item Persistent-set based DPOR is not optimal.
 \end{itemize}
 \end{frame}
 
 
 \begin{frame}{Source Sets}
 
-\begin{definition}[Initials after an execution sequence $E.w$, $I_{[E]}(w)$]
-    $p \in I_{[E]}(w)$ if and only if there is a sequence $w'$ such that $E.w \simeq E.p.w'$.
-\end{definition}
+%%%\begin{definition}[Initials after an execution sequence $E.w$, $I_{[E]}(w)$]
+%%%    $p \in I_{[E]}(w)$ if and only if there is a sequence $w'$ such that $E.w \simeq E.p.w'$.
+%%%\end{definition}
 
 
 \begin{definition}[Weak Initials after an execution sequence $E.w$, $WI_{[E]}(w)$]
@@ -543,11 +601,11 @@ and let $W$ be a set of sequences, such that $E.w$ is an execution
 sequence for each $w \in W$. A set $T$ of processes is a source set for
 $W$ after $E$ if for each $w \in W$ we have $WI_{[E]}(w) \cap T  \neq \emptyset$.
 \end{definition}
+\\
 
-Intuitively,
-source sets contain the processes that can perform ``first steps" in the
-possible future execution sequences.
-    
+\item A source set of a sequence $w$ at an execution sequence $E$, contains the process that can perform the  ``first steps" 
+after $E$ that can reproduce sequences equivalent to $w$.
+
 \end{frame}
 
 
@@ -555,7 +613,7 @@ possible future execution sequences.
 
 \begin{figure}
     
-\scalebox{0.7}{
+\scalebox{1}{
 \SetKwProg{Fn}{Function}{}{}
 \SetKwHangingKw{Let}{let}
 \begin{algorithm}[H]
@@ -582,18 +640,6 @@ possible future execution sequences.
 \end{algorithm}
 }
 \end{figure}
-
-\end{frame}
-
-\begin{frame}{Source-DPOR}
-
-Lets note that:
-
-\begin{itemize}
-\item the algorithm works in two phases: race detection (or planning) and state exploration.
-\item $Explore(E, Sleep)$ is responsible for exploring the complete subtree of our state space rooted at $E$. More formally, for all maximal execution of form $E.w$, at least on trace from every 
-$[E.w]_\simeq$ gets explored.
-\end{itemize}
 
 \end{frame}
 
@@ -682,8 +728,10 @@ An $ordered$ $tree$ is a pair $\langle B , \prec \rangle$, where B (the set of n
 
 \begin{frame} {Wakeup Trees}
 
-Intuitively, wakeup trees hold in the form of a tree the fragments that
-need to be explored in order to explore the necessary interleavings. They can visualized in the following way:
+Intuitively, wakeup trees hold sequences of processes that
+need to be explored. They can visualized in the following way:
+
+\pause
 
 \tracelonglong{WuTExample.png}{Visualizing wakeup trees.}
 
@@ -693,7 +741,7 @@ need to be explored in order to explore the necessary interleavings. They can vi
 
 Inserting new sequences ($insert_{[E]}(w,\langle B , \prec \rangle)$) in the wakeup tree has the following properties:
 
-\begin{itemize}
+\begin{itemize}[<+->]
 
     \item $insert_{[E]}(w,\langle B , \prec \rangle)$ is also a wakeup tree after $\langle E , P \rangle$.
     \item Any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$.
@@ -745,23 +793,23 @@ Inserting new sequences ($insert_{[E]}(w,\langle B , \prec \rangle)$) in the wak
 \end{frame}
 
 
-\begin{frame} {}
-  TODO: Add example here
+\begin{frame} {Optimal-DPOR example}
+\tracelong{../img/opt_seq/11.png}{Optimal-DPOR exlporation.}
+\end{frame}
+
+\begin{frame} {Optimal-DPOR example}
+\tracelong{../img/opt_seq/55.png}{Optimal-DPOR exlporation.}
 \end{frame}
 
 \section{Parallelizing source-DPOR and optimal-DPOR}
 
 \begin{frame} {Parallel source-DPOR}
 
-How would we parallelize a simple backtrack search algorithm?
-
 Lets assume that we have an execution sequence $E$ and that $p$ and $q$ are processes in $backtrack(E)$. We could:
 
-\begin{itemize}
-  \item Assign the exploration of $E.p$ and $E.q$ to different workers-schedulers i.e., assign to different schedulers different 
-  subtrees of our state space.
-  \item However, the exploration frontier gets updated in a non-local manner: some process $r$ can be added
-  at $backtrack(E)$ by both our schedulers.
+\begin{itemize}[<+->]
+  \item Assign the exploration of $E.p$ and $E.q$ to different workers-schedulers.
+  \item The exploration frontier gets updated in a non-local manner.
   \item Who would be responsible for exploring $E.r$?
   \item How do we now that the subtrees are balanced?
 \end{itemize}
@@ -772,16 +820,18 @@ Lets assume that we have an execution sequence $E$ and that $p$ and $q$ are proc
 
 We are going to use a centralized Controller who will be responsible for:
 
-\begin{itemize}
-  \item assigning work to different schedulers.
-  \item resolving conflicts concerning backtrack entries that may have been discovered by multiple schedulers.
+\begin{itemize}[<+->]
+  \item assigning work to different schedulers, by partitioning Execution sequences.
+  \item resolving conflicts.
 \end{itemize}
+\end{frame}
 
+\begin{frame} {Basic Idea}
 The Controller will keep track of:
 
-\begin{itemize}
+\begin{itemize}[<+->]
   \item the Frontier of our search: the set of the execution sequences assigned to different schedulers.
-  \item the Execution Tree: the subset of the state space that is currently being explored i.e., the Frontier combined in a tree form.
+  \item the Execution Tree: the subtree of the state space that is currently being explored i.e., the Frontier combined in a tree form.
   A path from the root of tree to a leaf uniquely determines an execution sequence.
 \end{itemize}
 
@@ -791,11 +841,10 @@ The Controller will keep track of:
 
 Also, lets introduce the concept of Execution Tree node ownership:
 
-\begin{itemize}
+\begin{itemize}[<+->]
   \item A scheduler exclusively \textbf{owns} a node of the state space if: 
     \begin{itemize}
-    \item it is contained as a backtrack entry within the part of the Frontier that was assigned
-to that specific scheduler, or
+    \item it is an assigned backtrack entry
     \item it is a descendant of a node that the scheduler owns.
     \end{itemize}
   \item All other nodes, are considered to have a \textbf{disputed} ownership.
@@ -803,12 +852,11 @@ to that specific scheduler, or
 
 \end{frame}
 
-\begin{frame} {Parallel source-DPOR}
+\begin{frame} {Controller Logic}
 
 \SetKwProg{Fn}{Function}{}{}
 \SetKwHangingKw{Let}{let}
 \begin{algorithm}[H]
-    \caption{Controller Loop}
     \label{controllerloop}
     \Fn{controller\_loop($N$, $Budget$, $Schedulers$)}{
         $E_0 \leftarrow$ an arbitrary initial execution sequence\;
@@ -830,12 +878,11 @@ to that specific scheduler, or
 
 \end{frame}
 
-\begin{frame} {Parallel source-DPOR}
+\begin{frame} {Frontier Partitioning}
 
 \SetKwProg{Fn}{Function}{}{}
 \SetKwHangingKw{Let}{let}
 \begin{algorithm}[H]
-    \caption{Frontier Partitioning}
     \label{partition}
     \Fn{partition($Frontier$, $N$)}{
         \For{all E $\in$ Frontier}{
@@ -858,12 +905,11 @@ to that specific scheduler, or
 
 
 
-\begin{frame} {Parallel source-DPOR}
+\begin{frame} {Scheduler Exploration Loop}
 
 \SetKwProg{Fn}{Function}{}{}
 \SetKwHangingKw{Let}{let}
 \begin{algorithm}[H]
-    \caption{Scheduler Exploration Loop}
     \label{explore_loop}
     \Fn{explore\_loop($E_0$, $Budget$)}{
         $StartTime \leftarrow get\_time()$\;
@@ -900,26 +946,65 @@ to that specific scheduler, or
 
 
 \end{frame}
+\begin{frame}{Resolving conflicts}
+
+$update\_execution\_tree(E, T)$:
+
+\begin{itemize}
+\item iterates
+over the execution sequence and the execution tree simultaneously .
+\item backtrack entries of E that are not found in the execution tree, are added to it.
+\item ownership is claimed over them.
+
+
+\end{itemize}
+
+\end{frame}
 
 
 \begin{frame} {Load Balancing}
 
-TODO: explain how load balancing works
+\begin{itemize}[<+->]
+
+\item Load balancing through time-slicing.
+
+\item Schedulers report back to Controller after their running time exceeds their budget.
+
+\item Smaller budget leads to better load balance, but also a larger communication overhead.
+
+\item We change the value of budget depending on the number of idle schedulers.
+
+
+\end{itemize}
 
 \end{frame}
 
-\begin{frame} {Parallel source-DPOR}
-
-TODO: add example
-
+\begin{frame}  {A simple example}
+\tracelong{../img/src_example/1_2.png}{Initial execution sequences.}
 \end{frame}
 
 
+\begin{frame}  {A simple example}
+\tracelong{../img/src_example/3.png}{Scheduler 1 exploration.}
+\end{frame}
+
+\begin{frame}  {A simple example}
+\tracelong{../img/src_example/5.png}{Execution Tree after Scheduler 1 reports to Controller.}
+\end{frame}
+
+
+
+\begin{frame}  {A simple example}
+\tracelong{../img/src_example/4.png}{Scheduler 2 exploration.}
+\end{frame}
+
+
+\iffalse
 \begin{frame} {Parallel optimal-DPOR - A first attempt}
 
 While trying to parallelize optimal-DPOR following the same technique we encounter two main issues:
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item In the sequential optimal-DPOR calls to $Explore(E, Sleep, WuT)$ guarantee that the complete subtree rooted
 at $E$ will be explored. However, for this to hold true,
 all sequences in $wut(E)$ that were ordered before WuT must have been explored. This means that the concept of ownership cannot be applied to complete wakeup trees.
@@ -927,11 +1012,12 @@ all sequences in $wut(E)$ that were ordered before WuT must have been explored. 
 \end{itemize}
 
 \end{frame}
+\fi
 
 \begin{frame} {Parallel optimal-DPOR - A first attempt}
 
-However, we do know that any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$.
-
+Any leaf of $\langle B , \prec \rangle$ remains a leaf of $insert_{[E]}(w,\langle B , \prec \rangle)$.
+\\
 We use this to develop a parallel algorithm that uses:
 
 \begin{itemize}
@@ -945,7 +1031,7 @@ We use this to develop a parallel algorithm that uses:
 
 \begin{frame} {Parallel optimal-DPOR - A first attempt}
 
-This attempt fails to provide any speedup (info about the test cases will be provided at the Performance Evaluation section):
+This attempt fails to provide any speedup:
 
 
 \smalltabular{"../tables/opttab.tex"}{Parallel optimal-DPOR performance.}
@@ -956,7 +1042,7 @@ This attempt fails to provide any speedup (info about the test cases will be pro
 
 Our attempt fails because:
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item We have parallelized the exploration phase of our algorithm, but have kept the most time consuming phase sequential.
 \item We have noticed that the planner, during most of the execution of our program, does not generate enough interleavings to keep the schedulers busy.
 \end{itemize}
@@ -971,24 +1057,137 @@ This behavior can be observed from the following graphs:
 
 \end{frame}
 
+
 \begin{frame} {Scalable parallel optimal-DPOR}
 
-Here I will present how I solved the two main issues, the algorithm and an example
+
+Lets assume that we have an execution sequence $E$ and that $w$, $v$ are leaf sequences of $wut(E)$:
+\begin{itemize}[<+->]
+\item Assign the exploration of $E.w$ and $E.v$ to different workers-schedulers.
+\item Those schedulers will explore the subtrees rooted at the assigned sequences.
+\end{itemize}
+
 
 \end{frame}
 
-\section{Implementation Details}
+\begin{frame} {Changing the concept of ownership}
+We need to modify the concept of ownership as follows:
+
+\begin{itemize}[<+->]
+\item A leaf sequence assigned to a scheduler is \textbf{owned} by that scheduler. 
+\item This scheduler also owns every node in the subtree rooted at that leaf. If $v$ is an owned leaf sequence in $wut(E)$ a scheduler owns every execution sequence that has a prefix of $E.v$.
+\item Leaf sequence assigned to different schedulers are marked as \textbf{not owned}
+\item All other nodes are considered \textbf{disputed}.
+\end{itemize}
+\end{frame}
+
+\begin{frame} {Resolving conflicts}
+
+Conflicts are harder to resolve:
+
+\begin{itemize}[<+->]
+\item Conflicts occur between sequences, instead of processes.
+\item $insert_{[E]}(v,wut(E))$ may end up inserting at $wut(E)$ an execution sequence different than $v$.
+\item different sequences may be equivalent.
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Resolving conflicts}
+
+To resolve them:
+
+\begin{itemize}[<+->]
+\item We modify $insert_{[E]}(v,wut(E))$ to insert sequences in the Execution Trees.
+\item If a disputed sequence can be inserted into the execution tree, ownership is claimed it.
+\item Otherwise, it is marked as not owned.
+
+\end{itemize}
+
+\end{frame}
 
 
-\begin{frame} {}
+\begin{frame} {Scalable parallel optimal-DPOR}
 
-Here I will why erlang pids need to be the same for every process of the tested program with Concuerror
+This approach is similar to the parallel source-DPOR except that:
 
-I will present how I solved it
+\begin{itemize}[<+->]
 
-Present disadvantages of this Distributed implementation
+\item $update\_execution\_tree(E, T)$ $inserts$ sequences in the Execution Tree, instead of processes.
+\item Schedulers are assigned the state space under a sequence, instead of a single process.
 
-Should I merge this with Erlang and Concuerror brief overview in the beginning?
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Comparing the two algorithms}
+
+Therefore:
+
+\begin{itemize}[<+->]
+
+\item the Controller has a higher computational complexity.
+\item the schedulers communicate with the Controller more frequently.
+
+\end{itemize}
+
+
+
+\end{frame}
+
+
+\begin{frame} {Modifying Concuerror}
+
+\begin{itemize}[<+->]
+\item Sequential Concuerror has one process for every process of tested program.
+\item Different schedulers must be able to explore different interleavings concurrently.
+\item Each scheduler must have its own set of processes. 
+\item Create mappings between the different copies of a process.
+\end{itemize}
+
+\end{frame}
+
+
+\begin{frame} {The issue with Pids}
+
+
+\begin{itemize}[<+->]
+\item Different Pids per process.
+\item Erlang allows comparison between Pids.
+\item The result of those comparisons must remain the same on different schedulers. 
+\item $pid\_to\_list$ BIF makes things worse.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {The issue with Pids}
+
+
+\begin{itemize}[<+->]
+\item We want different process with the same Pid.
+\item Inside an Erlang node, process from that node are reference by their local Pid.
+\item Processes from different nodes can have the same local Pid.
+\item Pids are generated sequentially within a node.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Different processes with the same Pid}
+
+
+\begin{itemize}[<+->]
+\item Each scheduler runs in its own node.
+\item Reach a consensus between the different schedulers as to the initial local Pid.
+\item Spawn processes after the consensus been reached.
+\item The $i_{th}$ processes spawned this way on different nodes, will all have the same local Pid.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame} {Modifying Concuerror}
+
+Concuerror now runs distributed.
 
 \end{frame}
 
@@ -1075,7 +1274,7 @@ Increase budget to 30000ms:
 
 Increasing the Budget:
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item Reduces the performance of source-DPOR, since it causes load imbalance.
 \item Increases the performance of optimal-DPOR, since finding disputed entries also leads to load balancing and therefore,
 optimal-DPOR does not need as frequent load balance.
@@ -1093,6 +1292,13 @@ optimal-DPOR does not need as frequent load balance.
 \end{frame}
 \fi
 
+\begin{frame}{Evaluation on lastzero 11}
+
+\customGraph{../scripts/lastzero_11_10000_combo_time.png}{Performance of lastzero 11 with Budget of 10000 for source and 30000 for optimal.}
+
+
+\end{frame}
+
 \begin{frame}{Evaluation on rush hour}
 
 \customGraph{../scripts/rush_hour_10000_combo_time.png}{Performance of rush hour with Budget of 10000 for source and 30000 for optimal.}
@@ -1100,48 +1306,61 @@ optimal-DPOR does not need as frequent load balance.
 
 \end{frame}
 
+\begin{frame}{Evaluation on indexer 17}
+
+\customGraph{../scripts/indexer_17_10000_combo_time.png}{Performance of indexer 17 with Budget of 10000 for source and 30000 for optimal.}
+
+
+\end{frame}
 
 \begin{frame}{Evaluation on rush hour}
 
 Both of our algorithms provide high speed and decent scalability on this test case.
+\\
 However, after 24 schedulers we notice that the scalability of optimal-DPOR starts to break. This is because:
 
-\begin{itemize}
+\begin{itemize}[<+->]
 \item the communication between the Controller and the schedulers in the case of optimal-DPOR is substantially more frequent.
-\item the $update\_execution\_tree$ function in optimal-DPOR is more ``expensive". 
-\item each execution sequence send between the schedulers and the Controller of the optimal-DPOR is larger, since it also contains wakeup trees from other fragments
+\item the $update\_execution\_tree$ function in optimal-DPOR is more ``expensive".
 \end{itemize}
 
 \end{frame}
 
-\begin{frame}{Evaluation on indexer}
+\begin{frame}{Recap}
 
-TODO add evaluation of indexer and lastzero
+Depending on the benchmark, Source-DPOR:
+\begin{itemize}[<+->]
+\item Can provide a speedup by a factor of 20.
+\item Retain scalability for 32 schedulers.
+\end{itemize}
+\pause
+Optimal-DPOR:
+\begin{itemize}[<+->]
+\item Can provide a speedup by a factor of 17.
+\item Retain scalability for up to 24 schedulers.
+\end{itemize}
+
 
 \end{frame}
 
 \begin{frame}{Conclusion}
 
-\begin{itemize}
-\item We managed to develop parallel versions for both source-DPOR and optimal-DPOR algorithms.
-\item We showed that developing a parallel version that is based on sequentially race detecting interleavings and exploring them in parallel will fail to provide any substantial speedup.
-\item We implemented our algorithms on Concuerror, while encountering and solving complex implementation issues.
-\item We showed that our algorithms achieve good speedups and even continue to scale up to 32 schedulers (24 for optimal-DPOR) on specific benchmarks.
+During this thesis we:
+\begin{itemize}[<+->]
+\item Parallelized source-DPOR and optimal-DPOR.
+\item Implemented our algorithms in Concuerror.
+\item Achieved significant speedups.
+\item Achieved scalability up to 32 schedulers on specific benchmarks.
 \end{itemize}
 
 \end{frame}
 
 
-\begin{frame}{Bibliography}
-
-Add Bibliography??
-
-\end{frame}
 
 
 \begin{frame}{}
 
-
+Thank you for your attention!
 
 \end{frame}
 

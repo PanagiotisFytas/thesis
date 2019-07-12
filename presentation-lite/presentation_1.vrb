@@ -1,0 +1,21 @@
+\frametitle{Stateless Model Checking}
+
+
+\begin{columns}[onlytextwidth]
+    \begin{column}{0.4\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            p:
+            read(x)
+            write(x)
+        \end{lstlisting}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+        \begin{lstlisting}[frame=none, numbers=none]
+            q:
+            read(y)
+            read(x)
+        \end{lstlisting}
+    \end{column}
+\end{columns}
+
+

@@ -2,9 +2,9 @@
 \label{conclusion}
 
 In this diploma thesis, we presented the parallelization of Concuerror. In order to parallelize Concuerror, we had to develop parallel versions for its two main algorithms: source-DPOR and optimal-DPOR. Parallelizing the optimal-DPOR algorithm appeared to be particularly daunting.
-What is more, we also had to overcome various implementation challenges while making it possible for Concuerror to explore multiple interleavings in parallel.
+What is more, while making it possible for Concuerror to explore multiple interleavings in parallel, we had to overcome various implementation challenges.
 
-We evaluated our algorithms by using parallel Concuerror to test various programs. During this evaluation, we discovered that our algorithms provide significant speedup on most of our benchmarks. Furthermore, our implementation is able to scale up to at least 32 schedulers, depending on the benchmark. We also noticed that parallel source-DPOR algorithm is more scalable than the parallel optimal-DPOR algorithm, which was to be expected. 
+We evaluated our algorithms by using parallel Concuerror to test various programs. During this evaluation, we discovered that our algorithms provide significant speedup on most of our benchmarks. Furthermore, our implementation is able to scale up to at least 32 schedulers, depending on the benchmark. We also noticed that the parallel source-DPOR algorithm is more scalable than the parallel optimal-DPOR algorithm, which was to be expected. 
 
 %Among the main lessons I learned from this thesis, is the importance of testing concurrent programs. While debugging my implementation, I %would occasionally run into bugs that would only occur on specific rare interleavings. Unfortunately, since Concuerror could not test %distributed Erlang programs, I was unable to use the sequential Concuerror to test my parallel implementation and therefore, to find those %specific interleavings. I would, then, spend hours to even try and reproduce the bug. 
 
