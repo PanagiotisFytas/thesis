@@ -28,8 +28,7 @@ by detecting dependencies more accurately. DPOR techniques have been successfull
 and Eta \cite{simsa2011efficient}.
 
 Parallelizing DPOR algorithms is essential in order to make them scalable to modern computer architectures, but also to potentially 
-achieve significant speedups that will alleviate the effect of the exponential state space explosion. The parallelization of
-DPOR algorithms that use persistent sets \cite{FlanaganDPOR, Lei:2006:RTC:1248722.1248743, 10.1007/3-540-53863-1_36} has already been 
+achieve significant speedups that will alleviate the effect of the exponential state space explosion. The parallelization of DPOR algorithms that use persistent sets \cite{FlanaganDPOR, Lei:2006:RTC:1248722.1248743, 10.1007/3-540-53863-1_36} has already been 
 been examined and parallel versions have been implement for Inspect \cite{yang2008inspect} and Eta 
 \cite{Simsa2012ScalableDP}.
 
@@ -48,6 +47,6 @@ used for testing concurrent Erlang programs. Specifically, we are going to:
 \section{Overview}
 
 In Chapter \ref{sec:background} we provide basic background information concerning Erlang, Concuerror and the abstraction used to model concurrent systems. In Chapter \ref{dpor} we describe the sequential source-DPOR and optimal-DPOR algorithms. In Chapters \ref{paradpor} and \ref{paradpor_opt} we present the parallel version we have developed for source-DPOR and optimal-DPOR, respectively. In Chapter 
-\ref{conc_mods} we describe the main issues we encountered while implementing our parallel algorithms in Concuerror. In Chapter 
-\ref{perfresults} we present and evaluate the performance achieved by our implementation. Finally, in Chapter \ref{conclusion}
+\ref{conc_mods} we describe the main issues we encountered while implementing our parallel algorithms in Concuerror.
+In Chapter \ref{perfresults} we present and evaluate the performance achieved by our implementation. Finally, in Chapter \ref{conclusion}
 we summarize the previous chapters and we examine possible extensions of our work.
